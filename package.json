@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "@vant/weapp": "^1.11.7"
+  },
+  "scripts": {
+    "dev:mp-weixin": "uni-app-cli dev:mp-weixin"
+  }
+
+}
