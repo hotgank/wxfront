@@ -1,94 +1,96 @@
 {
-  "pages": [
-    {
-      "path": "pages/index/index",
-      "style": {
-        "navigationBarTitleText": "首页"
-      }
-    },
-    {
-      "path": "pages/message/message",
-      "style": {
-        "navigationBarTitleText": "消息"
-      }
-    },
-    {
-      "path": "pages/my/my",
-      "style": {
-        "navigationBarTitleText": "我的"
-      }
-    },
-    {
-      "path": "pages/myDoctors/myDoctors",
-      "style": {
-        "navigationBarTitleText": "我的医生"
-      }
-    },
-    {
-      "path": "pages/doctorChat/doctorChat",
-      "style": {
-        "navigationBarTitleText": "咨询界面"
-      }
-    },
-    {
-      "path": "pages/childProfile/childProfile",
-      "style": {
-        "navigationBarTitleText": "档案"
-      }
-    },
-    {
-      "path": "pages/childReports/childReports",
-      "style": {
-        "navigationBarTitleText": "检测历史"
-      }
-    },
-    {
-      "path": "pages/reportDetails/reportDetails",
-      "style": {
-        "navigationBarTitleText": "报告详情"
-      }
-    }
-    
-  ],
-  "tabBar": {
-    "color": "#7A7E83",
-    "selectedColor": "#3cc51f",
-    "borderStyle": "black",
-    "backgroundColor": "#ffffff",
-    "list": [
-      {
-        "pagePath": "pages/index/index",
-        "iconPath": "static/tabbar/home.png",
-        "selectedIconPath": "static/tabbar/home-active.png",
-        "text": "首页"
-      },
-      {
-        "pagePath": "pages/message/message",
-        "iconPath": "static/tabbar/message.png",
-        "selectedIconPath": "static/tabbar/message-active.png",
-        "text": "消息"
-      },
-      {
-        "pagePath": "pages/my/my",
-        "iconPath": "static/tabbar/my.png",
-        "selectedIconPath": "static/tabbar/my-active.png",
-        "text": "我的"
-      }
-    ]
-  },
-  "globalStyle": {
-    "navigationBarTextStyle": "black",
-    "navigationBarTitleText": "UniApp",
-    "navigationBarBackgroundColor": "#F8F8F8",
-    "backgroundColor": "#F8F8F8"
-  },
-  
+	"pages": [
+		{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": "首页"
+			}
+		},
+		{
+			"path": "pages/message/message",
+			"style": {
+				"navigationBarTitleText": "消息"
+			}
+		},
+		{
+			"path": "pages/my/my",
+			"style": {
+				"navigationBarTitleText": "我的"
+			}
+		},
+		{
+			"path": "pages/myDoctors/myDoctors",
+			"style": {
+				"navigationBarTitleText": "我的医生"
+			}
+		},
+		{
+			"path": "pages/doctorChat/doctorChat",
+			"style": {
+				"navigationBarTitleText": "咨询界面"
+			}
+		},
+		{
+			"path": "pages/childProfile/childProfile",
+			"style": {
+				"navigationBarTitleText": "档案"
+			}
+		},
+		{
+			"path": "pages/childReports/childReports",
+			"style": {
+				"navigationBarTitleText": "检测历史"
+			}
+		},
+		{
+			"path": "pages/reportDetails/reportDetails",
+			"style": {
+				"navigationBarTitleText": "报告详情"
+			}
+		},
+		{
+			"path": "pages/doctorApplications/doctorApplications",
+			"style": {
+				"navigationBarTitleText": "医生申请"
+			}
+		}
+	],
+	"tabBar": {
+		"color": "#7A7E83",
+		"selectedColor": "#3cc51f",
+		"borderStyle": "black",
+		"backgroundColor": "#ffffff",
+		"list": [
+			{
+				"pagePath": "pages/index/index",
+				"iconPath": "static/tabbar/home.png",
+				"selectedIconPath": "static/tabbar/home-active.png",
+				"text": "首页"
+			},
+			{
+				"pagePath": "pages/message/message",
+				"iconPath": "static/tabbar/message.png",
+				"selectedIconPath": "static/tabbar/message-active.png",
+				"text": "消息"
+			},
+			{
+				"pagePath": "pages/my/my",
+				"iconPath": "static/tabbar/my.png",
+				"selectedIconPath": "static/tabbar/my-active.png",
+				"text": "我的"
+			}
+		]
+	},
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "UniApp",
+		"navigationBarBackgroundColor": "#F8F8F8",
+		"backgroundColor": "#F8F8F8"
+	},
 	"easycom": {
-      "autoscan": true,
-      "custom": {
-        "^van-(.*)": "@vant/weapp/lib/$1/index"
-      }
-}
-  
-
+		"autoscan": true,
+		"custom": {
+			"^van-(.*)": "@vant/weapp/lib/$1/index"
+		}
+	}
 }
