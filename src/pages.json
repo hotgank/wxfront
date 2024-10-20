@@ -53,6 +53,42 @@
 			"style": {
 				"navigationBarTitleText": "医生申请"
 			}
+		},
+		{
+			"path": "pages/doctorProfile/doctorProfile",
+			"style": {
+				"navigationBarTitleText": "医生信息"
+			}
+		},
+		{
+			"path": "pages/aiBodyCheck/aiBodyCheck",
+			"style": {
+				"navigationBarTitleText": "aiBodyCheck"
+			}
+		},
+		{
+			"path": "pages/selectProfile/selectProfile",
+			"style": {
+				"navigationBarTitleText": "selectProfile"
+			}
+		},
+		{
+			"path": "pages/uploadPhotos/uploadPhotos",
+			"style": {
+				"navigationBarTitleText": "uploadPhotos"
+			}
+		},
+		{
+			"path": "pages/evaluationRecords/evaluationRecords",
+			"style": {
+				"navigationBarTitleText": "evaluationRecords"
+			}
+		},
+		{
+			"path": "pages/consultDoctors/consultDoctors",
+			"style": {
+				"navigationBarTitleText": "consultDoctors"
+			}
 		}
 	],
 	"tabBar": {

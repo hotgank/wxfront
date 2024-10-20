@@ -24,7 +24,7 @@
       <!-- 第二个板块：咨询医生 -->
       <view class="section consultation">
         <view class="section-title">医生咨询</view>
-        <button class="consult-button" @click="navigateTo('doctorConsultation')">
+        <button class="consult-button" @click="navigateTo('consultDoctors')">
           <image src="/static/icons/doctor.png" mode="aspectFit" class="button-icon"></image>
           咨询医生
         </button>
