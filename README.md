@@ -14,7 +14,8 @@ npm run dev:mp-weixin
 
 ### Compiles and minifies for production
 ```
-还不知道。
+通过微信开发者工具导入预览
+
 ```
 
 ### Customize configuration
