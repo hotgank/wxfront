@@ -1,57 +1,69 @@
 <template>
   <view class="container">
-    <button @tap="handleLogin">微信登录</button>
+    <button @tap="info">微信登录</button>
   </view>
 </template>
 
 <script>
-import request from '@/utils/request.js'; // 假设您已在 utils 中封装 request 方法
+import request from '@/utils/request.js';
 
 export default {
   methods: {
-    async handleLogin() {
+    async info() {
       try {
-        // 1. 调用 uni.login 获取 code
-        const [loginError, loginRes] = await uni.login();
-        if (loginError) throw new Error('微信登录失败');
+        // 1. 调用 wx.login 获取 code
+        const loginRes = await new Promise((resolve, reject) => {
+          wx.login({
+            success: resolve,
+            fail: reject
+          });
+        });
+
+        if (!loginRes.code) {
+          throw new Error('微信登录失败');
+        }
 
         const code = loginRes.code;
 
-        // 2. 获取用户信息（可能需要用户授权）
-        const [userInfoError, userInfoRes] = await uni.getUserProfile({
-          desc: '用于完善会员资料' // 描述用户信息用途
+        // 2. 获取用户信息
+        const userInfoRes = await new Promise((resolve, reject) => {
+          wx.getUserInfo({
+            success: resolve,
+            fail: reject
+          });
         });
-        if (userInfoError) throw new Error('获取用户信息失败');
 
-        const { encryptedData, iv } = userInfoRes;
+        const { encryptedData, iv, userInfo } = userInfoRes;
 
-        // 3. 将 code、encryptedData 和 iv 发送到后端
-        const [requestError, response] = await request({
+        console.log('用户信息:', userInfo);
+
+        // 3. 将 code、encryptedData 和 iv 发送到后端进行验证
+        const response = await request({
           url: '/api/userLogin/weChatUserLogin',
           method: 'POST',
           data: {
-            appId: 'wx975451ebbab26b24d', // 若有必要
             code: code,
             encryptedData: encryptedData,
             iv: iv
           }
         });
 
-        if (requestError) throw new Error('登录请求失败');
+        if (response[0]) {
+          throw new Error('登录请求失败');
+        }
 
-        // 后端返回的 openid 和 token
-        const { openid, token } = response.data;
+        const { token } = response[1]; // 从后端返回的数据中获取 token
         uni.setStorageSync('token', token); // 将 token 存储到本地
-        console.log('登录成功', openid, token);
+        console.log('登录成功, token:', token);
 
         // 跳转到首页或其他页面
-        uni.navigateTo({
-          url: '/pages/home/home'
+        uni.switchTab({
+          url: '/pages/index/index' // 请替换为您的首页路径
         });
       } catch (error) {
-        console.error(error.message);
+        console.error('登录失败:', error.message);
         uni.showToast({
-          title: error.message,
+          title: error.message || '登录失败，请重试',
           icon: 'none'
         });
       }

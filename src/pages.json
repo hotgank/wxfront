@@ -1,6 +1,6 @@
 {
 	"pages": [
-
+		
 		{
 			"path": "pages/index/index",
 			"style": {
@@ -97,6 +97,7 @@
 				"navigationBarTitleText": "Login"
 			}
 		}
+		
 	],
 	"tabBar": {
 		"color": "#7A7E83",

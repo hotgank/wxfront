@@ -1,5 +1,5 @@
 // utils/request.js
-const BASE_URL = 'http://localhost:8080';//本地测试端口
+const BASE_URL = 'http://localhost:8080'; // 本地测试端口
 
 const request = (options) => {
   const token = uni.getStorageSync('token'); // 获取存储的 token
@@ -15,6 +15,7 @@ const request = (options) => {
         ...options.header,
       },
       success: (res) => {
+        console.log(options.method, '请求成功：', res);
         if (res.statusCode === 200) {
           resolve([null, res.data]);
         } else {
@@ -22,6 +23,7 @@ const request = (options) => {
         }
       },
       fail: (err) => {
+        console.log(options.method, '请求失败：', err);
         reject([err, null]);
       },
     });
