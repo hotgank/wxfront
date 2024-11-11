@@ -1,15 +1,41 @@
 <script>
-	export default {
-		onLaunch: function() {
-			console.log('App Launch')
-		},
-		onShow: function() {
-			console.log('App Show')
-		},
-		onHide: function() {
-			console.log('App Hide')
-		}
-	}
+	// App.vue
+export default {
+  onLaunch() {
+    const token = uni.getStorageSync('token');
+    
+    if (token) {
+		
+    } else {
+      // 如果没有 token，则跳转到登录页面
+      // this.redirectToLogin();
+    }
+  },
+  methods: {
+    async checkTokenValidity(token) {
+      // 可选：向后端发送请求验证 token 是否有效
+      try {
+        const [err, res] = await uni.request({
+          url: 'https://your-backend-url.com/api/validate-token',
+          method: 'POST',
+          data: { token },
+          header: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        return res?.data?.isValid; // 假设后端返回 isValid 字段
+      } catch (error) {
+        return false;
+      }
+    },
+    redirectToLogin() {
+      uni.redirectTo({
+        url: '/pages/Login/Login', // 跳转到登录页面
+      });
+    },
+  },
+};
+
 </script>
 
 <style>

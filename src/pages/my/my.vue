@@ -69,7 +69,7 @@ export default {
     },
     navigateTo(page) {
       uni.navigateTo({
-        url: `/pages/${page}/${page}`
+        url: `/pages/my/${page}/${page}`
       })
     }
   }

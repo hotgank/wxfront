@@ -1,5 +1,6 @@
 {
 	"pages": [
+
 		{
 			"path": "pages/index/index",
 			"style": {
@@ -19,7 +20,7 @@
 			}
 		},
 		{
-			"path": "pages/myDoctors/myDoctors",
+			"path": "pages/my/myDoctors/myDoctors",
 			"style": {
 				"navigationBarTitleText": "我的医生"
 			}
@@ -31,7 +32,7 @@
 			}
 		},
 		{
-			"path": "pages/childProfile/childProfile",
+			"path": "pages/my/childProfile/childProfile",
 			"style": {
 				"navigationBarTitleText": "档案"
 			}
@@ -49,7 +50,7 @@
 			}
 		},
 		{
-			"path": "pages/doctorApplications/doctorApplications",
+			"path": "pages/my/doctorApplications/doctorApplications",
 			"style": {
 				"navigationBarTitleText": "医生申请"
 			}
@@ -61,7 +62,7 @@
 			}
 		},
 		{
-			"path": "pages/aiBodyCheck/aiBodyCheck",
+			"path": "pages/index/aiBodyCheck/aiBodyCheck",
 			"style": {
 				"navigationBarTitleText": "aiBodyCheck"
 			}
@@ -79,15 +80,21 @@
 			}
 		},
 		{
-			"path": "pages/evaluationRecords/evaluationRecords",
+			"path": "pages/my/evaluationRecords/evaluationRecords",
 			"style": {
 				"navigationBarTitleText": "evaluationRecords"
 			}
 		},
 		{
-			"path": "pages/consultDoctors/consultDoctors",
+			"path": "pages/index/consultDoctors/consultDoctors",
 			"style": {
 				"navigationBarTitleText": "consultDoctors"
+			}
+		},
+		{
+			"path": "pages/Login/Login",
+			"style": {
+				"navigationBarTitleText": "Login"
 			}
 		}
 	],

@@ -62,7 +62,7 @@ export default {
   methods: {
     navigateTo(page) {
       uni.navigateTo({
-        url: `/pages/${page}/${page}`
+        url: `/pages/index/${page}/${page}`
       });
     }
   }
