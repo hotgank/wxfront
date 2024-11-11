@@ -1,5 +1,5 @@
 // utils/request.js
-const BASE_URL = 'https://your-backend-url.com';
+const BASE_URL = 'http://localhost:8080';//本地测试端口
 
 const request = (options) => {
   const token = uni.getStorageSync('token'); // 获取存储的 token
