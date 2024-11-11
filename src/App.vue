@@ -8,7 +8,7 @@ export default {
 		
     } else {
       // 如果没有 token，则跳转到登录页面
-      // this.redirectToLogin();
+      this.redirectToLogin();
     }
   },
   methods: {
