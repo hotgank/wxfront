@@ -30,8 +30,7 @@ export default {
           url: '/api/userLogin/weChatUserLogin',
           method: 'POST',
           data: {
-            appId: 'yourAppId', // 若有必要
-            appSecret: 'yourAppSecret', // 若有必要，不建议直接放到前端
+            appId: 'wx975451ebbab26b24d', // 若有必要
             code: code,
             encryptedData: encryptedData,
             iv: iv
