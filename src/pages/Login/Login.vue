@@ -1,6 +1,32 @@
 <template>
   <view class="container">
-    <button @tap="info">微信登录</button>
+    <!-- Navigation Bar -->
+    <view class="nav-bar">
+      <view class="nav-content">
+        <text class="nav-title"></text>
+      </view>
+    </view>
+    <!-- Main Content -->
+    <view class="content-wrapper">
+      <view class="content">
+        <!-- Logo Section -->
+        <view class="logo-section">
+          <image src="/static/logo.png" mode="aspectFit" class="logo logo-image" />
+          <text class="app-name">京东</text>
+        </view>
+
+        <!-- Permissions Text -->
+        <view class="permission-section">
+          <text class="permission-title">登录后开发者将获得以下权限</text>
+          <text class="permission-item">• 获得你的公开信息（昵称、头像等）</text>
+        </view>
+
+        <!-- Login Button -->
+        <button @tap="info" class="login-button">
+          确认登录
+        </button>
+      </view>
+    </view>
   </view>
 </template>
 
@@ -53,7 +79,10 @@ export default {
         }
 
         const { token } = response[1]; // 从后端返回的数据中获取 token
+        const expiryTime = Date.now() + 5 * 60 * 60 * 1000; // 5 minutes expiry
         uni.setStorageSync('token', token); // 将 token 存储到本地
+        uni.setStorageSync('token_expiry', expiryTime);
+
         console.log('登录成功, token:', token);
 
         // 跳转到首页或其他页面
@@ -71,3 +100,124 @@ export default {
   }
 };
 </script>
+
+<style>
+.container {
+  min-height: 100vh;
+  background-color: #ffffff;
+}
+
+.nav-bar {
+  padding: 44px 16px 8px;
+  background-color: #ffffff;
+}
+
+.nav-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+}
+
+.nav-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+}
+
+.content-wrapper {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 10vh;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.content {
+  /* other styles remain unchanged */
+}
+
+.logo-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.logo {
+  width: 120px;
+  height: 120px;
+  margin-bottom: 16px;
+}
+
+.logo-image {
+  transition: transform 0.3s ease;
+}
+
+.logo-image:hover {
+  transform: scale(1.05);
+}
+
+.app-name {
+  font-size: 18px;
+  font-weight: 500;
+  color: #333;
+}
+
+.permission-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.permission-title {
+  font-size: 16px;
+  color: #333;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.permission-item {
+  font-size: 14px;
+  color: #666;
+  text-align: center;
+}
+
+.login-button {
+  width: 90%;
+  height: 44px;
+  line-height: 44px;
+  background: #07c160;
+  color: #ffffff;
+  font-size: 16px;
+  border-radius: 4px;
+  border: none;
+  text-align: center;
+  margin-top: 20px;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.login-button:hover {
+  background-color: #1ea350;
+}
+
+.login-button:active {
+  transform: scale(0.98);
+  opacity: 0.8;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+</style>

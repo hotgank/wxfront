@@ -3,12 +3,15 @@
 export default {
   async onLaunch() {
     const token = uni.getStorageSync('token');
-    
-    if (token) {
-      // 检查 token 是否有效
-      const isValid = await this.checkTokenValidity(token);
-      if (!isValid) {
-        console.log("token 无效，跳转到登录页面");
+    const tokenExpiry = uni.getStorageSync('token_expiry');
+    // this.clearToken();//清理token
+    if (token && tokenExpiry) {
+      // 检查 token 是否过期
+      
+      const isExpired = Date.now() > tokenExpiry;
+      if (isExpired) {
+        console.log("token 已过期，跳转到登录页面");
+        this.clearToken();
         this.redirectToLogin();
       } else {
         console.log("token 有效", token);
@@ -22,29 +25,17 @@ export default {
   },
   
   methods: {
-    async checkTokenValidity(token) {
-      // 可选：向后端发送请求验证 token 是否有效
-      try {
-        const [err, res] = await uni.request({
-          url: 'https://your-backend-url.com/api/validate-token',
-          method: 'POST',
-          data: { token },
-          header: {
-            'Authorization': `Bearer ${token}`,
-          },
-        });
-        return res?.data?.isValid; // 假设后端返回 isValid 字段
-      } catch (error) {
-        return false;
-      }
+    clearToken() {
+      uni.removeStorageSync('token');
+      uni.removeStorageSync('token_expiry');
     },
     
     redirectToLogin() {
       uni.redirectTo({
         url: '/pages/Login/Login', // 跳转到登录页面
       });
-    },
-  },
+    }
+  }
 };
 
 </script>
