@@ -23,7 +23,11 @@
       <view class="modal-content">
         <text class="modal-title">{{ isEditing ? '编辑档案' : '添加档案' }}</text>
         <input v-model="currentProfile.name" class="modal-input" placeholder="姓名" />
-        <input v-model="currentProfile.age" class="modal-input" type="number" placeholder="年龄" />
+        <picker mode="date" @change="updateBirthdate" class="modal-input">
+          <view class="picker">
+            出生日期：{{ currentProfile.birthdate ? currentProfile.birthdate : '请选择' }}
+          </view>
+        </picker>
         <picker :range="genderOptions" @change="updateGender" class="modal-input">
           <view class="picker">
             性别：{{ currentProfile.gender ? currentProfile.gender : '请选择' }}
@@ -41,28 +45,53 @@
 </template>
 
 <script>
+import { getAllChildrenProfiles, getChildDetails, addChildProfile,updateChildProfile,deleteChildProfile } from '@/api/child.js';
+// import  '@/api/testApi';
 export default {
   data() {
     return {
-      profiles: [
-        { id: 1, name: '小明', age: 8, gender: '男', weight: 25.5, height: 130 },
-        { id: 2, name: '小红', age: 6, gender: '女', weight: 20.0, height: 115 },
-        { id: 3, name: '小华', age: 10, gender: '男', weight: 35.0, height: 145 }
-      ],
+      profiles: [],
       showModal: false,
       isEditing: false,
-      currentProfile: { name: '', age: '', gender: '', weight: '', height: '' },
+      currentProfile: { name: '', school: '', gender: '', birthdate: '', weight: '', height: '', age: '' },
       editIndex: -1,
       genderOptions: ['男', '女']
-    }
+    };
+  },
+  async mounted() {
+    await this.loadChildrenProfiles();
   },
   methods: {
+    async loadChildrenProfiles() {
+      try {
+        const basicProfiles = await getAllChildrenProfiles();
+        const detailedProfiles = await Promise.all(
+          basicProfiles.map(async (profile) => {
+            const details = await getChildDetails(profile.childId);
+            const age = this.calculateAge(details.birthdate);
+            const childId = profile.childId;
+            return { ...details, relationId: profile.relationId, age, childId: childId };
+          })
+        );
+        this.profiles = detailedProfiles.sort((a, b) => a.relationId - b.relationId);
+        console.log('Children profiles:', detailedProfiles);
+      } catch (error) {
+        console.error('加载孩子档案失败:', error.message);
+        uni.showToast({
+          title: '加载孩子档案失败',
+          icon: 'none'
+        });
+      }
+    },
+    updateBirthdate(event) {
+      this.currentProfile.birthdate = event.detail.value;
+    },
     updateGender(event) {
       this.currentProfile.gender = this.genderOptions[event.detail.value];
     },
     showAddModal() {
       this.isEditing = false;
-      this.currentProfile = { name: '', age: '', gender: '', weight: '', height: '' };
+      this.currentProfile = { name: '', school: '', gender: '', birthdate: '', weight: '', height: '', childId: '' };
       this.showModal = true;
     },
     showEditModal(index) {
@@ -74,12 +103,45 @@ export default {
     hideModal() {
       this.showModal = false;
     },
-    confirmProfile() {
-      if (this.currentProfile.name && this.currentProfile.age && this.currentProfile.gender && this.currentProfile.weight && this.currentProfile.height) {
+    async confirmProfile() {
+      const { name, gender, birthdate, weight, height, } = this.currentProfile;
+      
+      this.currentProfile.age = this.calculateAge(birthdate);
+      const age= this.currentProfile.age;
+      if (name && gender && birthdate && weight && height) {
         if (this.isEditing) {
-          this.profiles[this.editIndex] = { ...this.currentProfile };
+          // 编辑模式：更新档案
+          try {
+            // 确保 childId 已包含在 currentProfile 中
+            delete this.currentProfile.age;
+            console.log("更新请求数据:", this.currentProfile);
+            await updateChildProfile(this.currentProfile); // 调用 API 更新档案
+            this.profiles[this.editIndex] = { ...this.currentProfile,age };
+
+            uni.showToast({
+              title: '档案更新成功',
+              icon: 'success'
+            });
+          } catch (error) {
+            uni.showToast({
+              title: '更新档案失败',
+              icon: 'none'
+            });
+          }
         } else {
-          this.profiles.push({ ...this.currentProfile, id: Date.now() });
+          try {
+            const relationId = await addChildProfile(this.currentProfile); // 调用 API 创建档案
+            this.profiles.push({ ...this.currentProfile, relationId });
+            uni.showToast({
+              title: '档案添加成功',
+              icon: 'success'
+            });
+          } catch (error) {
+            uni.showToast({
+              title: '添加档案失败',
+              icon: 'none'
+            });
+          }
         }
         this.hideModal();
       } else {
@@ -89,13 +151,41 @@ export default {
         });
       }
     },
+    calculateAge(birthdate) {
+      const today = new Date();
+      const birthDate = new Date(birthdate);
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const monthDifference = today.getMonth() - birthDate.getMonth();
+      if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      return age;
+    },
     deleteProfile(index) {
+      const childId = this.profiles[index].childId; // 获取要删除的档案的 childId
       uni.showModal({
         title: '确认删除',
         content: '是否确定删除该档案？',
-        success: (res) => {
+        success: async (res) => {
           if (res.confirm) {
-            this.profiles.splice(index, 1);
+            try {
+              // 调用删除孩子档案的请求
+              await deleteChildProfile(childId);
+              
+              // 从列表中移除删除的档案
+              this.profiles.splice(index, 1);
+
+              uni.showToast({
+                title: '档案删除成功',
+                icon: 'success'
+              });
+            } catch (error) {
+              uni.showToast({
+                title: '删除档案失败',
+                icon: 'none'
+              });
+              console.error('删除孩子档案失败:', error.message);
+            }
           }
         }
       });
@@ -106,9 +196,8 @@ export default {
       });
     }
   }
-}
+};
 </script>
-
 <style>
 .container {
   display: flex;

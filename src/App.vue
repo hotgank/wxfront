@@ -4,9 +4,9 @@ export default {
   async onLaunch() {
     const token = uni.getStorageSync('token');
     const tokenExpiry = uni.getStorageSync('token_expiry');
-    // this.clearToken();//清理token
+    // this.clearToken();
     if (token && tokenExpiry) {
-      // 检查 token 是否过期
+      // 检查 token 是否过期z
       
       const isExpired = Date.now() > tokenExpiry;
       if (isExpired) {

@@ -12,7 +12,7 @@
         <!-- Logo Section -->
         <view class="logo-section">
           <image src="/static/logo.png" mode="aspectFit" class="logo logo-image" />
-          <text class="app-name">京东</text>
+          <text class="app-name">体态宝</text>
         </view>
 
         <!-- Permissions Text -->
@@ -22,7 +22,7 @@
         </view>
 
         <!-- Login Button -->
-        <button @tap="info" class="login-button">
+        <button @tap="handleLogin" class="login-button">
           确认登录
         </button>
       </view>
@@ -32,72 +32,87 @@
 
 <script>
 import request from '@/utils/request.js';
-
+import {login} from '@/api/login.js';
 export default {
   methods: {
-    async info() {
+    async handleLogin() {
       try {
-        // 1. 调用 wx.login 获取 code
-        const loginRes = await new Promise((resolve, reject) => {
-          wx.login({
-            success: resolve,
-            fail: reject
-          });
-        });
-
-        if (!loginRes.code) {
-          throw new Error('微信登录失败');
-        }
-
-        const code = loginRes.code;
-
-        // 2. 获取用户信息
-        const userInfoRes = await new Promise((resolve, reject) => {
-          wx.getUserInfo({
-            success: resolve,
-            fail: reject
-          });
-        });
-
-        const { encryptedData, iv, userInfo } = userInfoRes;
-
-        console.log('用户信息:', userInfo);
-
-        // 3. 将 code、encryptedData 和 iv 发送到后端进行验证
-        const response = await request({
-          url: '/api/userLogin/weChatUserLogin',
-          method: 'POST',
-          data: {
-            code: code,
-            encryptedData: encryptedData,
-            iv: iv
-          }
-        });
-
-        if (response[0]) {
-          throw new Error('登录请求失败');
-        }
-
-        const { token } = response[1]; // 从后端返回的数据中获取 token
-        const expiryTime = Date.now() + 5 * 60 * 60 * 1000; // 5 minutes expiry
-        uni.setStorageSync('token', token); // 将 token 存储到本地
-        uni.setStorageSync('token_expiry', expiryTime);
-
-        console.log('登录成功, token:', token);
-
-        // 跳转到首页或其他页面
+        const { token } = await login();
+        // 登录成功后可以执行其他逻辑，比如跳转页面
         uni.switchTab({
           url: '/pages/index/index' // 请替换为您的首页路径
         });
       } catch (error) {
-        console.error('登录失败:', error.message);
         uni.showToast({
           title: error.message || '登录失败，请重试',
           icon: 'none'
         });
       }
     }
-  }
+  //   async info() {
+  //     try {
+  //       // 1. 调用 wx.login 获取 code
+  //       const loginRes = await new Promise((resolve, reject) => {
+  //         wx.login({
+  //           success: resolve,
+  //           fail: reject
+  //         });
+  //       });
+
+  //       if (!loginRes.code) {
+  //         throw new Error('微信登录失败');
+  //       }
+
+  //       const code = loginRes.code;
+
+  //       // 2. 获取用户信息
+  //       const userInfoRes = await new Promise((resolve, reject) => {
+  //         wx.getUserInfo({
+  //           success: resolve,
+  //           fail: reject
+  //         });
+  //       });
+
+  //       const { encryptedData, iv, userInfo } = userInfoRes;
+
+  //       console.log('用户信息:', userInfo);
+
+  //       // 3. 将 code、encryptedData 和 iv 发送到后端进行验证
+  //       const response = await request({
+  //         url: '/api/userLogin/weChatUserLogin',
+  //         method: 'POST',
+  //         data: {
+  //           code: code,
+  //           encryptedData: encryptedData,
+  //           iv: iv
+  //         }
+  //       });
+
+  //       if (response[0]) {
+  //         throw new Error('登录请求失败');
+  //       }
+
+  //       const { token } = response[1]; // 从后端返回的数据中获取 token
+  //       const expiryTime = Date.now() + 5 * 60 * 60 * 1000; // 5 minutes expiry
+  //       uni.setStorageSync('token', token); // 将 token 存储到本地
+  //       uni.setStorageSync('token_expiry', expiryTime);
+
+  //       console.log('登录成功, token:', token);
+
+  //       // 跳转到首页或其他页面
+  //       uni.switchTab({
+  //         url: '/pages/index/index' // 请替换为您的首页路径
+  //       });
+  //     } catch (error) {
+  //       console.error('登录失败:', error.message);
+  //       uni.showToast({
+  //         title: error.message || '登录失败，请重试',
+  //         icon: 'none'
+  //       });
+  //     }
+  //   }
+  
+   }
 };
 </script>
 
