@@ -69,21 +69,16 @@ export default {
           const uploadedUrls = await Promise.all(uploadPromises);
 
           uni.hideLoading();
-          uni.showToast({
-            title: '图片上传成功,请在我的档案中等待查看检测结果',
-            icon: 'success',
-            duration: 2000
-          });
 
           // Call the AI detection API with the first uploaded image URL
           const imageUrl = uploadedUrls[0]; // Assuming you want to use the first uploaded photo
-          const aiResult = await aiDetect(this.childId, imageUrl);
+          const aiResult = aiDetect(this.childId, imageUrl);
 
           console.log('AI检测结果:', aiResult);
 
           // Handle the AI detection result here
           uni.showToast({
-            title: 'AI检测成功,请在我的档案等待查看检测结果',
+            title: 'AI检测成功',
             icon: 'success',
             duration: 2000
           });
@@ -91,10 +86,10 @@ export default {
           // Optionally redirect after success
           setTimeout(() => {
             uni.reLaunch({
-              url: '/pages/index/index'
+              url: `/pages/childReports/childReports?childId=${this.childId}` // 使用模板字符串插入 childId
             });
           }, 2000);
-          
+
         } catch (error) {
           uni.hideLoading();
           console.error('上传或AI检测失败:', error.message);

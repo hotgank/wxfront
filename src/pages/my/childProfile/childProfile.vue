@@ -5,15 +5,14 @@
       <button class="add-button" @tap="showAddModal">添加档案</button>
     </view>
     <scroll-view class="profile-list" scroll-y="true">
-      <view v-for="(profile, index) in profiles" :key="index" class="profile-card" @tap="navigateToReports(profile.childId)">
+      <view v-for="(profile, index) in childrenProfiles" :key="profile.childId" class="profile-card" @tap="navigateToReports(profile.childId)">
         <view class="profile-info">
           <text class="profile-name">{{ profile.name }}</text>
-          <text class="profile-details">{{ profile.age }}岁 | {{ profile.gender }} | {{ profile.weight }}kg | {{
-            profile.height }}cm</text>
+          <text class="profile-details">{{ profile.age }}岁 | {{ profile.gender }} | {{ profile.weight }}kg | {{ profile.height }}cm</text>
         </view>
         <view class="profile-actions">
           <button class="action-button edit" @tap.stop="showEditModal(index)">编辑</button>
-          <button class="action-button delete" @tap.stop="deleteProfile(index)">删除</button>
+          <button class="action-button delete" @tap.stop="deleteProfile(profile.childId)">删除</button>
         </view>
       </view>
     </scroll-view>
@@ -45,44 +44,27 @@
 </template>
 
 <script>
-import { getAllChildrenProfiles, getChildDetails, addChildProfile,updateChildProfile,deleteChildProfile } from '@/api/child.js';
-// import  '@/api/testApi';
+import { mapState, mapActions } from 'vuex';
+
 export default {
   data() {
     return {
-      profiles: [],
       showModal: false,
       isEditing: false,
-      currentProfile: { name: '', school: '', gender: '', birthdate: '', weight: '', height: '', age: '' },
+      currentProfile: { name: '', gender: '', birthdate: '', weight: '', height: '', age: '' },
       editIndex: -1,
       genderOptions: ['男', '女']
     };
+  },
+  computed: {
+    ...mapState(['childrenProfiles']) // 映射 Vuex 的 childrenProfiles 状态
   },
   async mounted() {
     await this.loadChildrenProfiles();
   },
   methods: {
-    async loadChildrenProfiles() {
-      try {
-        const basicProfiles = await getAllChildrenProfiles();
-        const detailedProfiles = await Promise.all(
-          basicProfiles.map(async (profile) => {
-            const details = await getChildDetails(profile.childId);
-            const age = this.calculateAge(details.birthdate);
-            const childId = profile.childId;
-            return { ...details, relationId: profile.relationId, age, childId: childId };
-          })
-        );
-        this.profiles = detailedProfiles.sort((a, b) => a.relationId - b.relationId);
-        console.log('Children profiles:', detailedProfiles);
-      } catch (error) {
-        console.error('加载孩子档案失败:', error.message);
-        uni.showToast({
-          title: '加载孩子档案失败',
-          icon: 'none'
-        });
-      }
-    },
+    ...mapActions(['loadChildrenProfiles', 'addChildProfile', 'updateChildProfile', 'deleteChildProfile']),
+
     updateBirthdate(event) {
       this.currentProfile.birthdate = event.detail.value;
     },
@@ -91,57 +73,26 @@ export default {
     },
     showAddModal() {
       this.isEditing = false;
-      this.currentProfile = { name: '', school: '', gender: '', birthdate: '', weight: '', height: '', childId: '' };
+      this.currentProfile = { name: '', gender: '', birthdate: '', weight: '', height: '' };
       this.showModal = true;
     },
     showEditModal(index) {
       this.isEditing = true;
-      this.currentProfile = { ...this.profiles[index] };
-      this.editIndex = index;
+      this.currentProfile = { ...this.childrenProfiles[index] };
       this.showModal = true;
     },
     hideModal() {
       this.showModal = false;
     },
     async confirmProfile() {
-      const { name, gender, birthdate, weight, height, } = this.currentProfile;
-      
-      this.currentProfile.age = this.calculateAge(birthdate);
-      const age= this.currentProfile.age;
-      if (name && gender && birthdate && weight && height) {
+      this.currentProfile.age = this.calculateAge(this.currentProfile.birthdate);
+      if (this.currentProfile.name && this.currentProfile.gender && this.currentProfile.birthdate && this.currentProfile.weight && this.currentProfile.height) {
         if (this.isEditing) {
           // 编辑模式：更新档案
-          try {
-            // 确保 childId 已包含在 currentProfile 中
-            delete this.currentProfile.age;
-            console.log("更新请求数据:", this.currentProfile);
-            await updateChildProfile(this.currentProfile); // 调用 API 更新档案
-            this.profiles[this.editIndex] = { ...this.currentProfile,age };
-
-            uni.showToast({
-              title: '档案更新成功',
-              icon: 'success'
-            });
-          } catch (error) {
-            uni.showToast({
-              title: '更新档案失败',
-              icon: 'none'
-            });
-          }
+          await this.updateChildProfile(this.currentProfile);
         } else {
-          try {
-            const relationId = await addChildProfile(this.currentProfile); // 调用 API 创建档案
-            this.profiles.push({ ...this.currentProfile, relationId });
-            uni.showToast({
-              title: '档案添加成功',
-              icon: 'success'
-            });
-          } catch (error) {
-            uni.showToast({
-              title: '添加档案失败',
-              icon: 'none'
-            });
-          }
+          // 添加模式：创建档案
+          await this.addChildProfile(this.currentProfile);
         }
         this.hideModal();
       } else {
@@ -161,34 +112,8 @@ export default {
       }
       return age;
     },
-    deleteProfile(index) {
-      const childId = this.profiles[index].childId; // 获取要删除的档案的 childId
-      uni.showModal({
-        title: '确认删除',
-        content: '是否确定删除该档案？',
-        success: async (res) => {
-          if (res.confirm) {
-            try {
-              // 调用删除孩子档案的请求
-              await deleteChildProfile(childId);
-              
-              // 从列表中移除删除的档案
-              this.profiles.splice(index, 1);
-
-              uni.showToast({
-                title: '档案删除成功',
-                icon: 'success'
-              });
-            } catch (error) {
-              uni.showToast({
-                title: '删除档案失败',
-                icon: 'none'
-              });
-              console.error('删除孩子档案失败:', error.message);
-            }
-          }
-        }
-      });
+    async deleteProfile(childId) {
+      await this.deleteChildProfile(childId);
     },
     navigateToReports(childId) {
       uni.navigateTo({
@@ -311,7 +236,7 @@ export default {
 
 .modal-input,
 .picker {
-  width: 100%;
+  width: 90%;
   height: 40px;
   border: 1px solid #e0e0e0;
   border-radius: 5px;

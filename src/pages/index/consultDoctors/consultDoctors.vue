@@ -4,12 +4,11 @@
       <text class="title">咨询医生</text>
     </view>
     <scroll-view class="doctor-list" scroll-y="true">
-      <view v-for="(doctor) in doctors" :key="doctor.doctorId " class="doctor-card">
+      <view v-for="(doctor) in doctors" :key="doctor.doctorId" class="doctor-card">
         <image :src="doctor.avatarUrl || '/static/doctor-avatars/default.jpg'" mode="aspectFill" class="doctor-avatar" @tap="viewDoctorProfile(doctor)"></image>
         <view class="doctor-info">
-          <text class="doctor-name">{{ doctor.name }}  </text>
+          <text class="doctor-name">{{ doctor.name }}</text>
           <text class="doctor-title">{{ doctor.position || '医生' }}</text>
-          <br>
           <text class="doctor-hospital">{{ doctor.workplace || '未知医院' }}</text>
         </view>
         <button class="apply-button" @tap="applyDoctor(doctor.doctorId)">申请成为患者</button>
@@ -19,26 +18,22 @@
 </template>
 
 <script>
-import { getAllDoctors } from '@/api/doctor.js';
+import { mapState, mapActions } from 'vuex';
 import { bindDoctorPatientRelation } from '@/api/relation.js';
 
 export default {
-  data() {
-    return {
-      doctors: [] 
-    };
-  },
-  async mounted() {
-    await this.loadDoctors();
+  computed: {
+    ...mapState(['doctors']) // 使用 Vuex 的 state
   },
   methods: {
-    async loadDoctors() {
+    ...mapActions(['loadDoctors']), // 使用 Vuex 的 actions
+
+    async fetchDoctors() {
       try {
-        const doctors = await getAllDoctors();
-        console.log('医生数据:', doctors);
-        this.doctors = doctors;
+        if (!this.doctors.length) { // 如果医生列表为空则加载数据
+          await this.loadDoctors();
+        }
       } catch (error) {
-        console.error('加载医生信息失败:', error.message);
         uni.showToast({
           title: '加载医生信息失败',
           icon: 'none'
@@ -47,7 +42,7 @@ export default {
     },
 
     viewDoctorProfile(doctor) {
-      const url = `/pages/doctorProfile/doctorProfile?id=${doctor.doctorId}&name=${encodeURIComponent(doctor.name)}&position=${encodeURIComponent(doctor.position || '医生')}&workplace=${encodeURIComponent(doctor.workplace || '未知医院')}&avatarUrl=${encodeURIComponent(doctor.avatarUrl || '/static/doctor-avatars/default.jpg')}&rating=${doctor.rating || 0}&experience=${encodeURIComponent(doctor.experience || 0)}`;
+      const url = `/pages/doctorProfile/doctorProfile?id=${doctor.doctorId}&name=${encodeURIComponent(doctor.name)}&position=${encodeURIComponent(doctor.position || '医生')}&workplace=${encodeURIComponent(doctor.workplace || '未知医院')}&avatarUrl=${encodeURIComponent(doctor.avatarUrl || '/static/doctor-avatars/default.jpg')}&rating=${doctor.rating || 0}&experience=${encodeURIComponent(doctor.experience || '暂无工作经历')}`;
       
       uni.navigateTo({
         url: url
@@ -55,7 +50,7 @@ export default {
     },
 
     async applyDoctor(doctorId) {
-      const childId = 'C-75f9fafb-d539-4acf-ac5f-a1acc379c248'; // 假设 childId 是固定的测试值
+      const childId = 'C-75f9fafb-d539-4acf-ac5f-a1acc379c248'; // 示例 childId
 
       try {
         await bindDoctorPatientRelation(doctorId, childId);
@@ -65,17 +60,19 @@ export default {
           showCancel: false
         });
       } catch (error) {
-        console.error('绑定关系失败:', error.message);
         uni.showToast({
           title: '申请失败，请重试',
           icon: 'none'
         });
       }
     }
+  },
+
+  async mounted() {
+    await this.fetchDoctors(); // 在组件加载时获取医生数据
   }
 };
 </script>
-
 <style>
 .container {
   display: flex;
