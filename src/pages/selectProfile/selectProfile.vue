@@ -4,13 +4,13 @@
       <text class="title">选择档案</text>
     </view>
     <scroll-view class="profile-list" scroll-y="true">
-      <view v-for="(profile, index) in profiles" :key="index" class="profile-card" @tap="selectProfile(profile.id)">
+      <view v-for="(profile, index) in profiles" :key="index" class="profile-card" @tap="selectProfile(profile.childId)">
         <view class="profile-info">
           <text class="profile-name">{{ profile.name }}</text>
           <text class="profile-details">{{ profile.age }}岁 | {{ profile.gender }} | {{ profile.weight }}kg | {{ profile.height }}cm</text>
         </view>
         <view class="profile-actions">
-          <button class="action-button select" @tap.stop="selectProfile(profile.id)">选择</button>
+          <button class="action-button select" @tap.stop="selectProfile(profile.childId)">选择</button>
         </view>
       </view>
     </scroll-view>
@@ -18,24 +18,56 @@
 </template>
 
 <script>
+import { getAllChildrenProfiles, getChildDetails } from '@/api/child.js';
 export default {
+  
   data() {
     return {
       detectionType: '',
-      profiles: [
-        { id: 1, name: '小明', age: 8, gender: '男', weight: 25.5, height: 130 },
-        { id: 2, name: '小红', age: 6, gender: '女', weight: 20.0, height: 115 },
-        { id: 3, name: '小华', age: 10, gender: '男', weight: 35.0, height: 145 }
-      ]
+      profiles: []
     }
+  },
+  async mounted() {
+    await this.loadChildrenProfiles();
   },
   onLoad(option) {
     this.detectionType = option.type;
   },
   methods: {
-    selectProfile(profileId) {
+    async loadChildrenProfiles() {
+      try {
+        const basicProfiles = await getAllChildrenProfiles();
+        const detailedProfiles = await Promise.all(
+          basicProfiles.map(async (profile) => {
+            const details = await getChildDetails(profile.childId);
+            const age = this.calculateAge(details.birthdate);
+            const childId = profile.childId;
+            return { ...details, relationId: profile.relationId, age, childId: childId };
+          })
+        );
+        this.profiles = detailedProfiles.sort((a, b) => a.relationId - b.relationId);
+        console.log('Children profiles:', detailedProfiles);
+      } catch (error) {
+        console.error('加载孩子档案失败:', error.message);
+        uni.showToast({
+          title: '加载孩子档案失败',
+          icon: 'none'
+        });
+      }
+    },
+    calculateAge(birthdate) {
+      const today = new Date();
+      const birthDate = new Date(birthdate);
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const monthDifference = today.getMonth() - birthDate.getMonth();
+      if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      return age;
+    },
+    selectProfile(childId) {
       uni.navigateTo({
-        url: `/pages/uploadPhotos/uploadPhotos?type=${this.detectionType}&profileId=${profileId}`
+        url: `/pages/uploadPhotos/uploadPhotos?type=${this.detectionType}&childId=${childId}`
       });
     }
   }

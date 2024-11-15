@@ -1,6 +1,6 @@
 // src/api/testApi.js
 import { getAllChildrenProfiles, getChildDetails, addChildProfile , updateChildProfile } from '@/api/child.js';
-
+import { uploadImage } from '@/api/uploadImage.js';
 // const testGetAllChildrenProfiles = async () => {
 //   try {
 //     const profiles = await getAllChildrenProfiles();
@@ -51,10 +51,34 @@ const testUpdateChildProfile = async () => {
     console.error('编辑孩子档案失败:', error.message);
   }
 };
+export const startUploadTest = () => {
+  uni.chooseImage({
+    count: 1,
+    sourceType: ['album', 'camera'],
+    success: async (res) => {
+      const filePath = res.tempFilePaths[0];
+      console.log('选择的图片路径:', filePath);
+
+      try {
+        const imageUrl = await uploadImage(filePath);
+        console.log('测试图片上传成功，返回的图片URL:', imageUrl);
+      } catch (error) {
+        console.error('测试图片上传失败:', error.message);
+      }
+    },
+    fail: (err) => {
+      console.error('选择图片失败:', err);
+    },
+  });
+};
+
+// 调用 startUploadTest 来启动测试
+// startUploadTest();
 
 
 // 执行测试
 // testGetAllChildrenProfiles();
 // testGetChildDetails();
 // testAddChildProfile();
-testUpdateChildProfile();
+// testUpdateChildProfile();
+// startUploadTest();

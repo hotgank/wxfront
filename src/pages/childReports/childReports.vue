@@ -1,155 +1,246 @@
 <template>
-    <view class="container">
-      <view class="header">
-        <text class="title">{{ childName }}的检测报告</text>
+  <view class="container">
+    <view class="header">
+      <text class="title">{{ childName }}的检测报告</text>
+    </view>
+    <scroll-view class="report-list" scroll-y="true">
+      <view v-if="reports.length === 0" class="no-reports">
+        <text>暂无报告</text>
       </view>
-      <scroll-view class="report-list" scroll-y="true">
-        <view v-for="(report, index) in sortedReports" :key="index" class="report-card" :class="{ 'generating': report.isGenerating }" @tap="viewReportDetails(report)">
-          <view class="report-info">
-            <text class="report-date">{{ report.date }}</text>
-            <text class="report-type">{{ report.type }}</text>
-          </view>
+      <view v-for="(report) in sortedReports" :key="report.reportId" class="report-card"
+        :class="{ 'generating': report.isGenerating }" @tap="viewReportDetails(report)">
+        <view class="report-info">
+          <text class="report-date">{{ report.date }}</text>
+          <text class="report-type">{{ report.type }}检测</text>
+        </view>
+        <view class="report-status-and-actions">
           <view v-if="report.isGenerating" class="generating-badge">
             <text class="generating-text">生成中</text>
           </view>
           <view v-else class="report-status">
             <text class="status-text">已完成</text>
           </view>
+          <button class="action-button view-button" @tap.stop="viewReportDetails(report)">查看</button>
+          <button class="action-button delete-button" @tap.stop="deleteChildReport(report.reportId)">删除</button>
         </view>
-      </scroll-view>
-    </view>
-  </template>
-  
-  <script>
-  export default {
-    data() {
-      return {
-        childId: null,
-        childName: '',
-        reports: []
+      </view>
+    </scroll-view>
+  </view>
+</template>
+
+
+<script>
+import { getChildDetails } from '@/api/child.js';
+import { fetchChildReport, deleteReport } from '@/api/report.js';
+
+export default {
+  data() {
+    return {
+      childId: null,
+      childName: '',
+      reports: []
+    }
+  },
+  computed: {
+    sortedReports() {
+      return this.reports.sort((a, b) => new Date(b.date) - new Date(a.date));
+    }
+  },
+  onLoad(option) {
+    this.childId = option.childId;
+    console.log('Child ID:', this.childId);
+    this.loadChildInfo();
+    this.loadReports();
+  },
+  methods: {
+    loadChildInfo() {
+      getChildDetails(this.childId).then(child => {
+        this.childName = child.name;
+      }).catch(error => {
+        console.error('加载孩子信息失败:', error);
+        uni.showToast({
+          title: '加载孩子信息失败',
+          icon: 'none'
+        });
+      });
+    },
+    async loadReports() {
+      try {
+        const reports = await fetchChildReport(this.childId);
+        this.reports = reports.map(report => {
+          const dateArray = report.createdAt;
+          const date = new Date(dateArray[0], dateArray[1] - 1, dateArray[2], dateArray[3], dateArray[4], dateArray[5]);
+          return {
+            reportId: report.reportId,
+            date: date.toLocaleDateString(),
+            type: report.reportType,
+            isGenerating: report.state !== '检测完成',
+            analyse: report.analyse,
+            result: report.result,
+            url: report.url,
+            comment: report.comment,
+            doctorId: report.doctorId
+          };
+        });
+      } catch (error) {
+        console.error('加载报告失败:', error);
+        uni.showToast({
+          title: '加载报告失败',
+          icon: 'none'
+        });
       }
     },
-    computed: {
-      sortedReports() {
-        return this.reports.sort((a, b) => new Date(b.date) - new Date(a.date));
+    viewReportDetails(report) {
+      if (!report) {
+        console.error("Report data is undefined");
+        uni.showToast({
+          title: '报告数据不存在',
+          icon: 'none'
+        });
+        return;
+      }
+
+      if (!report.isGenerating) {
+        uni.navigateTo({
+          url: `/pages/reportDetails/reportDetails?reportId=${report.reportId}&type=${report.type}&date=${report.date}&comment=${report.comment || ''}&doctorId=${report.doctorId || ''}&image=${encodeURIComponent(report.url)}&result=${report.result}&analyse=${report.analyse}`
+        });
+      } else {
+        uni.showToast({
+          title: '报告正在生成中，请稍后查看',
+          icon: 'none'
+        });
       }
     },
-    onLoad(option) {
-      this.childId = option.id;
-      this.loadChildInfo();
-      this.loadReports();
-    },
-    methods: {
-      loadChildInfo() {
-        // 这里应该从后端或本地存储获取孩子信息
-        // 这里使用模拟数据
-        this.childName = '小明';
-      },
-      loadReports() {
-        // 这里应该从后端获取检测报告
-        // 这里使用模拟数据
-        this.reports = [
-          { id: 1, date: '2023-05-01', type: 'AI全面体态检测', isGenerating: false },
-          { id: 2, date: '2023-04-15', type: '脊柱健康检测', isGenerating: false },
-          { id: 3, date: '2023-03-20', type: 'Cobb角测量', isGenerating: false },
-          { id: 4, date: '2023-05-10', type: 'AI全面体态检测', isGenerating: true }
-        ];
-      },
-      viewReportDetails(report) {
-        if (!report.isGenerating) {
-          uni.navigateTo({
-            url: `/pages/reportDetails/reportDetails?id=${report.id}`
-          });
-        } else {
-          uni.showToast({
-            title: '报告正在生成中，请稍后查看',
-            icon: 'none'
-          });
-        }
+    async deleteChildReport(reportId) {
+      try {
+        await this.deleteReport(reportId);
+        this.reports = this.reports.filter(report => report.reportId !== reportId);
+        uni.showToast({
+          title: '报告已删除',
+          icon: 'success'
+        });
+      } catch (error) {
+        console.error('删除报告失败:', error);
+        uni.showToast({
+          title: '删除报告失败',
+          icon: 'none'
+        });
       }
+    },
+    async deleteReport(reportId) {
+      await deleteReport(reportId);
     }
   }
-  </script>
-  
-  <style>
-  .container {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    background-color: #f5f5f5;
-  }
-  
-  .header {
-    padding: 20px;
-    background-color: #ffffff;
-    border-bottom: 1px solid #e0e0e0;
-  }
-  
-  .title {
-    font-size: 20px;
-    font-weight: bold;
-    color: #333;
-  }
-  
-  .report-list {
-    flex: 1;
-    padding: 10px;
-  }
-  
-  .report-card {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #ffffff;
-    border-radius: 10px;
-    padding: 15px;
-    margin-bottom: 10px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  
-  .report-card.generating {
-    background-color: #fff0f0;
-    border: 1px solid #ffcccb;
-  }
-  
-  .report-info {
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .report-date {
-    font-size: 16px;
-    font-weight: bold;
-    color: #333;
-    margin-bottom: 5px;
-  }
-  
-  .report-type {
-    font-size: 14px;
-    color: #666;
-  }
-  
-  .generating-badge {
-    background-color: #ff3b30;
-    padding: 5px 10px;
-    border-radius: 15px;
-  }
-  
-  .generating-text {
-    color: #ffffff;
-    font-size: 12px;
-    font-weight: bold;
-  }
-  
-  .report-status {
-    background-color: #4cd964;
-    padding: 5px 10px;
-    border-radius: 15px;
-  }
-  
-  .status-text {
-    color: #ffffff;
-    font-size: 12px;
-    font-weight: bold;
-  }
-  </style>
+}
+</script>
+
+<style>
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #f5f5f5;
+}
+
+.header {
+  padding: 20px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: bold;
+  color: #333;
+}
+
+.report-list {
+  flex: 1;
+  padding: 10px;
+}
+
+.no-reports {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  font-size: 16px;
+  color: #999;
+}
+
+.report-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #ffffff;
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.report-card.generating {
+  background-color: #fff0f0;
+  border: 1px solid #ffcccb;
+}
+
+.report-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.report-date {
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.report-type {
+  font-size: 14px;
+  color: #666;
+}
+
+.report-status-and-actions {
+  display: flex;
+  align-items: center;
+}
+
+.generating-badge, .report-status {
+  padding: 5px 10px;
+  border-radius: 15px;
+  margin-right: 10px;
+}
+
+.generating-badge {
+  background-color: #ff3b30;
+}
+
+.report-status {
+  background-color: #4cd964;
+}
+
+.generating-text, .status-text {
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.action-button {
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 12px;
+  margin-left: 5px;
+}
+
+.view-button {
+  background-color: #007aff;
+  color: #ffffff;
+}
+
+.delete-button {
+  background-color: #ff3b30;
+  color: #ffffff;
+}
+</style>

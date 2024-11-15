@@ -5,7 +5,7 @@
       <button class="add-button" @tap="showAddModal">添加档案</button>
     </view>
     <scroll-view class="profile-list" scroll-y="true">
-      <view v-for="(profile, index) in profiles" :key="index" class="profile-card" @tap="navigateToReports(profile.id)">
+      <view v-for="(profile, index) in profiles" :key="index" class="profile-card" @tap="navigateToReports(profile.childId)">
         <view class="profile-info">
           <text class="profile-name">{{ profile.name }}</text>
           <text class="profile-details">{{ profile.age }}岁 | {{ profile.gender }} | {{ profile.weight }}kg | {{
@@ -192,7 +192,7 @@ export default {
     },
     navigateToReports(childId) {
       uni.navigateTo({
-        url: `/pages/childReports/childReports?id=${childId}`
+        url: `/pages/childReports/childReports?childId=${childId}`
       });
     }
   }

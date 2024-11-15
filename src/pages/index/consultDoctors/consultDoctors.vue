@@ -4,73 +4,76 @@
       <text class="title">咨询医生</text>
     </view>
     <scroll-view class="doctor-list" scroll-y="true">
-      <view v-for="(doctor, index) in doctors" :key="index" class="doctor-card">
-        <image :src="doctor.avatar" mode="aspectFill" class="doctor-avatar" @tap="viewDoctorProfile(doctor.id)"></image>
+      <view v-for="(doctor) in doctors" :key="doctor.doctorId " class="doctor-card">
+        <image :src="doctor.avatarUrl || '/static/doctor-avatars/default.jpg'" mode="aspectFill" class="doctor-avatar" @tap="viewDoctorProfile(doctor)"></image>
         <view class="doctor-info">
-          <text class="doctor-name">{{ doctor.name }}</text>
-          <text class="doctor-title">{{ doctor.title }}</text>
-          <text class="doctor-hospital">{{ doctor.hospital }}</text>
+          <text class="doctor-name">{{ doctor.name }}  </text>
+          <text class="doctor-title">{{ doctor.position || '医生' }}</text>
+          <br>
+          <text class="doctor-hospital">{{ doctor.workplace || '未知医院' }}</text>
         </view>
-        <button class="apply-button" @tap="applyDoctor(doctor.id)">申请成为患者</button>
+        <button class="apply-button" @tap="applyDoctor(doctor.doctorId)">申请成为患者</button>
       </view>
     </scroll-view>
   </view>
 </template>
 
 <script>
+import { getAllDoctors } from '@/api/doctor.js';
+import { bindDoctorPatientRelation } from '@/api/relation.js';
+
 export default {
   data() {
     return {
-      doctors: [
-        {
-          id: 1,
-          name: '张医生',
-          avatar: '/static/doctor-avatars/doctor1.jpg',
-          title: '主任医师',
-          hospital: '北京协和医院'
-        },
-        {
-          id: 2,
-          name: '李医生',
-          avatar: '/static/doctor-avatars/doctor2.jpg',
-          title: '副主任医师',
-          hospital: '上海瑞金医院'
-        },
-        {
-          id: 3,
-          name: '王医生',
-          avatar: '/static/doctor-avatars/doctor3.jpg',
-          title: '主治医师',
-          hospital: '广州中山大学附属第一医院'
-        }
-      ]
-    }
+      doctors: [] 
+    };
+  },
+  async mounted() {
+    await this.loadDoctors();
   },
   methods: {
-    viewDoctorProfile(doctorId) {
+    async loadDoctors() {
+      try {
+        const doctors = await getAllDoctors();
+        console.log('医生数据:', doctors);
+        this.doctors = doctors;
+      } catch (error) {
+        console.error('加载医生信息失败:', error.message);
+        uni.showToast({
+          title: '加载医生信息失败',
+          icon: 'none'
+        });
+      }
+    },
+
+    viewDoctorProfile(doctor) {
+      const url = `/pages/doctorProfile/doctorProfile?id=${doctor.doctorId}&name=${encodeURIComponent(doctor.name)}&position=${encodeURIComponent(doctor.position || '医生')}&workplace=${encodeURIComponent(doctor.workplace || '未知医院')}&avatarUrl=${encodeURIComponent(doctor.avatarUrl || '/static/doctor-avatars/default.jpg')}&rating=${doctor.rating || 0}&experience=${encodeURIComponent(doctor.experience || 0)}`;
+      
       uni.navigateTo({
-        url: `/pages/doctorProfile/doctorProfile?id=${doctorId}`
+        url: url
       });
     },
-    applyDoctor(doctorId) {
-      // 这里应该是向后端发送申请的逻辑
-      // 为了演示，我们直接显示申请成功的提示
-      uni.showModal({
-        title: '申请成功',
-        content: '您的申请已提交，请在申请记录中查看申请是否通过。',
-        showCancel: false,
-        success: (res) => {
-          if (res.confirm) {
-            // 可以在这里添加跳转到申请记录页面的逻辑
-            // uni.navigateTo({
-            //   url: '/pages/applicationRecords/applicationRecords'
-            // });
-          }
-        }
-      });
+
+    async applyDoctor(doctorId) {
+      const childId = 'C-75f9fafb-d539-4acf-ac5f-a1acc379c248'; // 假设 childId 是固定的测试值
+
+      try {
+        await bindDoctorPatientRelation(doctorId, childId);
+        uni.showModal({
+          title: '申请成功',
+          content: '您的申请已提交，请在申请记录中查看申请是否通过。',
+          showCancel: false
+        });
+      } catch (error) {
+        console.error('绑定关系失败:', error.message);
+        uni.showToast({
+          title: '申请失败，请重试',
+          icon: 'none'
+        });
+      }
     }
   }
-}
+};
 </script>
 
 <style>
@@ -143,5 +146,8 @@ export default {
   padding: 8px 12px;
   border-radius: 5px;
   font-size: 14px;
+}
+.doctor-name {
+  margin-right: 8px;
 }
 </style>

@@ -28,7 +28,7 @@
 		  {
 			doctorId: 1,
 			doctorName: '张医生',
-			doctorAvatar: '/static/doctor-avatars/doctor1.jpg',
+			doctorAvatar: '/static/doctor-avatars/default.jpg',
 			lastMessage: '好的，我明白了。您可以先...',
 			lastMessageTime: dayjs().subtract(1, 'day').format('YYYY-MM-DD HH:mm'),
 			unread: false
@@ -36,7 +36,7 @@
 		  {
 			doctorId: 2,
 			doctorName: '李医生',
-			doctorAvatar: '/static/doctor-avatars/doctor2.jpg',
+			doctorAvatar: '/static/doctor-avatars/default.jpg',
 			lastMessage: '您的最新检查结果已经出来了',
 			lastMessageTime: dayjs().subtract(7, 'day').format('YYYY-MM-DD HH:mm'),
 			unread: true
@@ -44,7 +44,7 @@
 		  {
 			doctorId: 3,
 			doctorName: '王医生',
-			doctorAvatar: '/static/doctor-avatars/doctor3.jpg',
+			doctorAvatar: '/static/doctor-avatars/default.jpg',
 			lastMessage: '请记得按时服药，如有不适随时联系我',
 			lastMessageTime: dayjs().subtract(3, 'day').format('YYYY-MM-DD HH:mm'),
 			unread: false

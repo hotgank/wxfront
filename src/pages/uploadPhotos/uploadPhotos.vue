@@ -7,9 +7,13 @@
       <text class="instruction">请按照以下要求上传照片：</text>
       <view v-for="(requirement, index) in photoRequirements" :key="index" class="photo-requirement">
         <text class="requirement-title">{{ requirement.title }}</text>
-        <view class="photo-upload" @tap="chooseImage(index)">
-          <image v-if="uploadedPhotos[index]" :src="uploadedPhotos[index]" mode="aspectFit" class="uploaded-photo"></image>
-          <text v-else class="upload-text">点击上传</text>
+        <view class="photo-upload">
+          <image v-if="uploadedPhotos[index]" :src="uploadedPhotos[index]" mode="aspectFit" class="uploaded-photo">
+          </image>
+          <view v-else class="upload-options">
+            <button @tap="chooseImage(index, 'album')" class="upload-option">从相册选择</button>
+            <button @tap="chooseImage(index, 'camera')" class="upload-option">拍照上传</button>
+          </view>
         </view>
       </view>
       <button class="submit-button" @tap="submitPhotos" :disabled="!allPhotosUploaded">提交检测</button>
@@ -18,18 +22,19 @@
 </template>
 
 <script>
+import { uploadImage } from '@/api/uploadImage'; // Make sure to adjust the import path
+import { aiDetect } from '../../api/aiApi';
 export default {
   data() {
     return {
+      childId: null,
       detectionType: '',
       profileId: '',
       photoRequirements: [
-        { title: '正面全身照' },
-        { title: '侧面全身照' },
-        { title: '背面全身照' }
+        { title: '正面全身照' }
       ],
       uploadedPhotos: []
-    }
+    };
   },
   computed: {
     allPhotosUploaded() {
@@ -38,42 +43,71 @@ export default {
   },
   onLoad(option) {
     this.detectionType = option.type;
-    this.profileId = option.profileId;
+    this.childId = option.childId;
   },
   methods: {
-    chooseImage(index) {
+    chooseImage(index, sourceType) {
+      console.log('选择的图片来源:', sourceType);
       uni.chooseImage({
         count: 1,
         sizeType: ['original', 'compressed'],
-        sourceType: ['album', 'camera'],
+        sourceType: [sourceType],
         success: (res) => {
           this.$set(this.uploadedPhotos, index, res.tempFilePaths[0]);
         }
       });
     },
-    submitPhotos() {
+    async submitPhotos() {
       if (this.allPhotosUploaded) {
         uni.showLoading({
           title: '正在上传...'
         });
-        setTimeout(() => {
+
+        try {
+          // Upload each photo and collect their URLs
+          const uploadPromises = this.uploadedPhotos.map(photo => uploadImage(photo));
+          const uploadedUrls = await Promise.all(uploadPromises);
+
           uni.hideLoading();
           uni.showToast({
-            title: '上传成功',
+            title: '图片上传成功,请在我的档案中等待查看检测结果',
             icon: 'success',
             duration: 2000
           });
-          // 上传成功后，返回到首页
+
+          // Call the AI detection API with the first uploaded image URL
+          const imageUrl = uploadedUrls[0]; // Assuming you want to use the first uploaded photo
+          const aiResult = await aiDetect(this.childId, imageUrl);
+
+          console.log('AI检测结果:', aiResult);
+
+          // Handle the AI detection result here
+          uni.showToast({
+            title: 'AI检测成功,请在我的档案等待查看检测结果',
+            icon: 'success',
+            duration: 2000
+          });
+
+          // Optionally redirect after success
           setTimeout(() => {
             uni.reLaunch({
               url: '/pages/index/index'
             });
           }, 2000);
-        }, 2000);
+          
+        } catch (error) {
+          uni.hideLoading();
+          console.error('上传或AI检测失败:', error.message);
+          uni.showToast({
+            title: '上传或AI检测失败',
+            icon: 'none'
+          });
+        }
       }
     }
   }
-}
+};
+
 </script>
 
 <style>
@@ -142,6 +176,26 @@ export default {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.upload-options {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+
+.upload-option {
+  background-color: #007aff;
+  color: #ffffff;
+  padding: 10px 15px;
+  border-radius: 5px;
+  font-size: 16px;
+  margin: 5px 0;
+  width: 80%;
 }
 
 .submit-button {

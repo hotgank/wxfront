@@ -4,26 +4,26 @@
       <image :src="doctor.avatar" mode="aspectFill" class="doctor-avatar"></image>
       <view class="doctor-basic-info">
         <text class="doctor-name">{{ doctor.name }}</text>
-        <text class="doctor-title">{{ doctor.title }}</text>
-        <text class="doctor-hospital">{{ doctor.hospital }}</text>
+        <text class="doctor-position">{{ doctor.position }}</text>
+        <text class="doctor-workplace">{{ doctor.workplace }}</text>
       </view>
     </view>
     <view class="content">
       <view class="info-section">
-        <text class="section-title">评分</text>
+        <text class="section-position">评分</text>
         <view class="rating">
           <text class="rating-score">{{ doctor.rating }}</text>
           <view class="rating-stars">
-            <text v-for="i in 5" :key="i" class="star" :class="{ 'filled': i <= Math.floor(doctor.rating) }">★</text>
+            <text v-for="i in 5" :key="i" class="star" :class="{ 'filled': i < Math.floor(doctor.rating) }">★</text>
           </view>
         </view>
       </view>
       <view class="info-section">
-        <text class="section-title">职位</text>
+        <text class="section-position">职位</text>
         <text class="section-content">{{ doctor.position }}</text>
       </view>
       <view class="info-section">
-        <text class="section-title">工作经历</text>
+        <text class="section-position">工作经历</text>
         <text class="section-content">{{ doctor.experience }}</text>
       </view>
     </view>
@@ -35,34 +35,25 @@ export default {
   data() {
     return {
       doctor: {
-        id: 1,
-        name: '张医生',
-        avatar: '/static/doctor-avatars/doctor1.jpg',
-        title: '主任医师',
-        hospital: '北京协和医院',
-        rating: 4.8,
-        position: '骨科主任',
-        experience: '张医生有超过20年的骨科临床经验。他在脊柱侧弯治疗和矫正方面有着丰富的经验。曾在美国进修两年，专攻脊柱畸形矫正手术。回国后，他在北京协和医院骨科担任主任职务，带领团队完成了数千例成功的脊柱手术。'
+        id: '',
+        name: '',
+        avatar: '',
+        workplace: '',
+        rating: 0,
+        position: '',
+        experience: ''
       }
     }
   },
   onLoad(option) {
-    // 在实际应用中，这里应该根据传入的 id 从后端获取医生信息
-    // const doctorId = option.id;
-    // this.loadDoctorInfo(doctorId);
-  },
-  methods: {
-    loadDoctorInfo(doctorId) {
-      // 这里应该是从后端获取医生信息的逻辑
-      // 例如：
-      // uni.request({
-      //   url: 'your-api-url',
-      //   data: { id: doctorId },
-      //   success: (res) => {
-      //     this.doctor = res.data;
-      //   }
-      // });
-    }
+    // 使用传入的 URL 参数设置医生信息
+    this.doctor.id = option.id || '';
+    this.doctor.name = decodeURIComponent(option.name) || '未知医生';
+    this.doctor.avatar = decodeURIComponent(option.avatarUrl) || '/static/doctor-avatars/default.jpg';
+    this.doctor.workplace = decodeURIComponent(option.workplace) || '未知医院';
+    this.doctor.position = decodeURIComponent(option.position) || '医生';
+    this.doctor.rating = parseFloat(option.rating) || 0;
+    this.doctor.experience = decodeURIComponent(option.experience) || '暂无工作经历';
   }
 }
 </script>
@@ -101,13 +92,13 @@ export default {
   color: #333;
 }
 
-.doctor-title {
+.doctor-position {
   font-size: 16px;
   color: #666;
   margin-top: 5px;
 }
 
-.doctor-hospital {
+.doctor-workplace {
   font-size: 14px;
   color: #999;
   margin-top: 5px;
@@ -125,7 +116,7 @@ export default {
   margin-bottom: 20px;
 }
 
-.section-title {
+.section-position {
   font-size: 18px;
   font-weight: bold;
   color: #333;
