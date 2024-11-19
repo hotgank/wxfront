@@ -4,10 +4,11 @@
       <text class="title">测评记录</text>
     </view>
     <scroll-view class="record-list" scroll-y="true">
-      <view v-for="(record, index) in sortedRecords" :key="index" class="record-card" @tap="viewReportDetails(record.id)">
+      <view v-for="(record, index) in sortedRecords" :key="index" class="record-card"
+        @tap="viewReportDetails(record.id)">
         <view class="record-info">
           <text class="record-name">{{ record.childName }}</text>
-          <text class="record-type">{{ record.type }}</text>
+          <text class="record-type">{{ record.reportType }}</text>
         </view>
         <view class="record-time">
           <text class="time-text">{{ record.date }}</text>
@@ -21,15 +22,13 @@
 </template>
 
 <script>
+import dayjs from 'dayjs';
+import { selectAllReports } from '@/api/report'
 export default {
   data() {
     return {
       records: [
-        { id: 1, childName: '小明', type: 'AI全面体态检测', date: '2023-05-10 14:30', isGenerating: false },
-        { id: 2, childName: '小红', type: '脊柱健康检测', date: '2023-05-09 10:15', isGenerating: false },
-        { id: 3, childName: '小华', type: 'Cobb角测量', date: '2023-05-08 16:45', isGenerating: false },
-        { id: 4, childName: '小明', type: 'AI全面体态检测', date: '2023-05-07 09:00', isGenerating: false },
-        { id: 5, childName: '小红', type: '脊柱健康检测', date: '2023-05-11 11:30', isGenerating: true }
+
       ]
     }
   },
@@ -38,7 +37,49 @@ export default {
       return this.records.sort((a, b) => new Date(b.date) - new Date(a.date));
     }
   },
+  onLoad() {
+    this.fetchRecords();
+  },
   methods: {
+
+    async fetchRecords() {
+      try {
+        const res = await selectAllReports(); // 调用后端接口获取数据
+
+        if (!Array.isArray(res)) {
+          throw new Error('后端返回数据格式不正确');
+        }
+
+        this.records = res.map(record => {
+          // 将 createdAt 数组转换为 Date 对象
+          const dateArray = record.createdAt;
+          const date = new Date(
+            dateArray[0], // 年
+            dateArray[1] - 1, // 月，JavaScript 的月份从 0 开始
+            dateArray[2], // 日
+            dateArray[3], // 时
+            dateArray[4], // 分
+            dateArray[5] // 秒
+          );
+
+          return {
+            id: record.id,
+            childName: record.childName,
+            reportType: record.reportType,
+            date: dayjs(date).format('YYYY-MM-DD HH:mm:ss'), // 格式化时间
+            isGenerating: record.state === '检测中', // 根据状态设置标记
+          };
+        });
+      } catch (error) {
+        console.error('加载记录失败:', error);
+        uni.showToast({
+          title: '加载记录失败，请检查网络',
+          icon: 'none',
+        });
+        this.records = []; // 异常情况下重置数据
+      }
+    },
+
     viewReportDetails(recordId) {
       const record = this.records.find(r => r.id === recordId);
       if (record.isGenerating) {

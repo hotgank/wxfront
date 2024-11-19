@@ -8,7 +8,7 @@
         <image :src="doctor.avatar" mode="aspectFill" class="doctor-avatar"></image>
         <view class="doctor-info">
           <text class="doctor-name">{{ doctor.name }}</text>
-          <text class="doctor-hospital">{{ doctor.hospital }}</text>
+          <text class="doctor-hospital">---{{ doctor.hospital }}</text>
         </view>
         <view :class="['application-status', getStatusClass(doctor.status)]">
           <text>{{ doctor.status }}</text>
@@ -19,35 +19,37 @@
 </template>
 
 <script>
+import { getSelectApplication } from '@/api/relation'; // 动态请求方法
+
 export default {
   data() {
     return {
-      doctors: [
-        {
-          id: 1,
-          name: '张医生',
-          avatar: '/static/doctor-avatars/doctor1.jpg',
-          hospital: '北京协和医院',
-          status: '申请中'
-        },
-        {
-          id: 2,
-          name: '李医生',
-          avatar: '/static/doctor-avatars/doctor2.jpg',
-          hospital: '上海瑞金医院',
-          status: '已通过'
-        },
-        {
-          id: 3,
-          name: '王医生',
-          avatar: '/static/doctor-avatars/doctor3.jpg',
-          hospital: '广州中山大学附属第一医院',
-          status: '已拒绝'
-        }
-      ]
-    }
+      doctors: []
+    };
+  },
+  mounted() {
+    this.fetchDoctors();
   },
   methods: {
+    async fetchDoctors() {
+      const [error, data] = await getSelectApplication();
+      if (error) {
+        uni.showToast({
+          title: '加载失败，请稍后再试',
+          icon: 'none',
+          duration: 2000
+        });
+        return;
+      }
+      this.doctors = data.map(item => ({
+        id: item.doctor.doctorId,
+        name: item.doctor.name || item.doctor.username,
+        avatar: item.doctor.avatarUrl,
+        hospital: item.doctor.workplace || '未知医院',
+        status: item.relationStatus === 'pending' ? '申请中' :
+                item.relationStatus === 'approved' ? '已通过' : '已拒绝'
+      }));
+    },
     navigateToDoctorInfo(doctorId) {
       uni.navigateTo({
         url: `/pages/doctorInfo/doctorInfo?id=${doctorId}`
@@ -66,9 +68,8 @@ export default {
       }
     }
   }
-}
+};
 </script>
-
 <style>
 .container {
   display: flex;

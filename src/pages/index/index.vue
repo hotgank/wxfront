@@ -34,10 +34,10 @@
       <view class="section encyclopedia">
         <view class="section-title">知识板块</view>
         <view class="button-group">
-          <button class="custom-button" @click="navigateTo('encyclopedia')">
+          <!-- <button class="custom-button" @click="navigateTo('encyclopedia')">
             <image src="/static/icons/encyclopedia.png" mode="aspectFit" class="button-icon"></image>
             查看青年百科
-          </button>
+          </button> -->
           <button class="custom-button" @click="navigateTo('articles')">
             <image src="/static/icons/article.png" mode="aspectFit" class="button-icon"></image>
             查看科普文章

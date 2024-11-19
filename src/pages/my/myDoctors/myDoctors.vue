@@ -1,17 +1,17 @@
 <template>
     <view class="container">
-      <image class="background-image" src="/static/background-doctors.jpg" mode="aspectFill"></image>
+      <image class="background-image" src="/static/icons/background-message.jpg" mode="aspectFill"></image>
       <view class="content">
         <view class="header">
           <text class="title">我的医生</text>
         </view>
         <view class="doctor-list">
-          <view v-for="(doctor, index) in doctors" :key="index" class="doctor-card" @click="navigateToChat(doctor.id)">
+          <view v-for="doctor in doctors" :key="doctor.doctorId" class="doctor-card" @tap="navigateToChat(doctor.id)">
             <image :src="doctor.avatar" mode="aspectFill" class="doctor-avatar"></image>
             <view class="doctor-info">
               <text class="doctor-name">{{ doctor.name }}</text>
-              <text class="doctor-hospital">{{ doctor.hospital }}</text>
-              <text class="doctor-specialty">擅长：{{ doctor.specialty }}</text>
+              <text class="doctor-hospital">{{ doctor.workplace }}</text>
+              <text class="doctor-specialty">{{ doctor.experience }}</text>
             </view>
           </view>
         </view>
@@ -20,35 +20,31 @@
   </template>
   
   <script>
+  import { getMyDoctors } from '@/api/doctor'
   export default {
     data() {
       return {
         doctors: [
-          {
-            id: 1,
-            name: '张医生',
-            avatar: '/static/doctor-avatars/doctor1.jpg',
-            hospital: '北京协和医院',
-            specialty: '脊柱侧弯、颈椎病'
-          },
-          {
-            id: 2,
-            name: '李医生',
-            avatar: '/static/doctor-avatars/doctor2.jpg',
-            hospital: '上海瑞金医院',
-            specialty: '青少年体态矫正、运动损伤'
-          },
-          {
-            id: 3,
-            name: '王医生',
-            avatar: '/static/doctor-avatars/doctor3.jpg',
-            hospital: '广州中山大学附属第一医院',
-            specialty: 'Cobb角测量、脊柱畸形'
-          }
         ]
       }
     },
+    mounted() {
+      this.fetchDoctors();
+    },
     methods: {
+      async fetchDoctors() {
+        try {
+          if (!this.doctors.length) { // 如果医生列表为空则加载数据
+            const doctors = await getMyDoctors();
+            this.doctors = doctors;
+          }
+        } catch (error) {
+          uni.showToast({
+            title: '加载医生信息失败',
+            icon: 'none'
+          });
+        }
+      },
       navigateToChat(doctorId) {
         uni.navigateTo({
           url: `/pages/doctorChat/doctorChat?id=${doctorId}`

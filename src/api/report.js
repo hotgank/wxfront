@@ -34,3 +34,17 @@ export function deleteReport(reportId) {
       throw err;
     }
   };
+  export function selectAllReports() {
+    return request({
+      url: '/api/userReport/selectAll',
+      method: 'GET',
+    })
+      .then(response => {
+        console.log('查询全部成功', response[1]);
+        return response[1];
+      })
+      .catch(error => {
+        console.error('查询全部失败', error);
+        throw error;
+      });
+  }

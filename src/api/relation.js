@@ -7,7 +7,16 @@ export function bindDoctorPatientRelation(doctorId, childId) {
     method: 'POST',
     data: {
       doctorId: doctorId,
-      childId: childId
     }
   });
 }
+// 引入封装的请求工具
+
+// 查询申请记录
+export const getSelectApplication = (params = {}) => {
+  return request({
+    url: '/api/doctor/relation/selectApplication', // 接口路径
+    method: 'GET', // HTTP 方法 
+  });
+};
+

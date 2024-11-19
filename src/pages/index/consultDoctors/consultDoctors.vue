@@ -9,6 +9,7 @@
         <view class="doctor-info">
           <text class="doctor-name">{{ doctor.name }}</text>
           <text class="doctor-title">{{ doctor.position || '医生' }}</text>
+          <br>
           <text class="doctor-hospital">{{ doctor.workplace || '未知医院' }}</text>
         </view>
         <button class="apply-button" @tap="applyDoctor(doctor.doctorId)">申请成为患者</button>
@@ -50,10 +51,10 @@ export default {
     },
 
     async applyDoctor(doctorId) {
-      const childId = 'C-75f9fafb-d539-4acf-ac5f-a1acc379c248'; // 示例 childId
+      
 
       try {
-        await bindDoctorPatientRelation(doctorId, childId);
+        await bindDoctorPatientRelation(doctorId);
         uni.showModal({
           title: '申请成功',
           content: '您的申请已提交，请在申请记录中查看申请是否通过。',
