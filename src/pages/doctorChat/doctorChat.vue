@@ -26,7 +26,7 @@
     data() {
       return {
         doctorName: '张医生',
-        doctorAvatar: '/static/doctor-avatars/doctor1.jpg',
+        doctorAvatar: '/static/doctor-avatars/default.jpg',
         userAvatar: '/static/user-avatar.jpg',
         messages: [],
         inputMessage: '',
@@ -35,21 +35,21 @@
           {
             id: 1,
             name: '张医生',
-            avatar: '/static/doctor-avatars/doctor1.jpg',
+            avatar: '/static/doctor-avatars/default.jpg',
             hospital: '北京协和医院',
             specialty: '脊柱侧弯、颈椎病'
           },
           {
             id: 2,
             name: '李医生',
-            avatar: '/static/doctor-avatars/doctor2.jpg',
+            avatar: '/static/doctor-avatars/default.jpg',
             hospital: '上海瑞金医院',
             specialty: '青少年体态矫正、运动损伤'
           },
           {
             id: 3,
             name: '王医生',
-            avatar: '/static/doctor-avatars/doctor3.jpg',
+            avatar: '/static/doctor-avatars/default.jpg',
             hospital: '广州中山大学附属第一医院',
             specialty: 'Cobb角测量、脊柱畸形'
           }

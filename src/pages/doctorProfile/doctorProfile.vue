@@ -1,10 +1,10 @@
 <template>
   <view class="container">
     <view class="header">
-      <image :src="doctor.avatar" mode="aspectFill" class="doctor-avatar"></image>
+      <image :src="doctor.avatarUrl" mode="aspectFill" class="doctor-avatar"></image>
       <view class="doctor-basic-info">
         <text class="doctor-name">{{ doctor.name }}</text>
-        <text class="doctor-position">{{ doctor.position }}</text>
+        <text class="doctor-position">{{ doctor.position||'主治医师' }}</text>
         <text class="doctor-workplace">{{ doctor.workplace }}</text>
       </view>
     </view>
@@ -20,11 +20,11 @@
       </view>
       <view class="info-section">
         <text class="section-position">职位</text>
-        <text class="section-content">{{ doctor.position }}</text>
+        <text class="section-content">{{ doctor.position||'医生' }}</text>
       </view>
       <view class="info-section">
         <text class="section-position">工作经历</text>
-        <text class="section-content">{{ doctor.experience }}</text>
+        <text class="section-content">{{ doctor.experience||'是一位经验丰富的小白' }}</text>
       </view>
     </view>
   </view>
@@ -37,7 +37,7 @@ export default {
       doctor: {
         id: '',
         name: '',
-        avatar: '',
+        avatarUrl: '',
         workplace: '',
         rating: 0,
         position: '',
@@ -46,14 +46,17 @@ export default {
     }
   },
   onLoad(option) {
-    // 使用传入的 URL 参数设置医生信息
-    this.doctor.id = option.id || '';
-    this.doctor.name = decodeURIComponent(option.name) || '未知医生';
-    this.doctor.avatar = decodeURIComponent(option.avatarUrl) || '/static/doctor-avatars/default.jpg';
-    this.doctor.workplace = decodeURIComponent(option.workplace) || '未知医院';
-    this.doctor.position = decodeURIComponent(option.position) || '医生';
-    this.doctor.rating = parseFloat(option.rating) || 0;
-    this.doctor.experience = decodeURIComponent(option.experience) || '暂无工作经历';
+    if (option.doctor) {
+    try {
+      this.doctor = JSON.parse(decodeURIComponent(option.doctor));
+    } catch (error) {
+      console.error('医生数据解析失败:', error);
+      uni.showToast({
+        title: '加载医生数据失败',
+        icon: 'none',
+      });
+    }
+  }
   }
 }
 </script>

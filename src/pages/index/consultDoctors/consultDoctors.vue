@@ -43,11 +43,9 @@ export default {
     },
 
     viewDoctorProfile(doctor) {
-      const url = `/pages/doctorProfile/doctorProfile?id=${doctor.doctorId}&name=${encodeURIComponent(doctor.name)}&position=${encodeURIComponent(doctor.position || '医生')}&workplace=${encodeURIComponent(doctor.workplace || '未知医院')}&avatarUrl=${encodeURIComponent(doctor.avatarUrl || '/static/doctor-avatars/default.jpg')}&rating=${doctor.rating || 0}&experience=${encodeURIComponent(doctor.experience || '暂无工作经历')}`;
-      
       uni.navigateTo({
-        url: url
-      });
+      url: `/pages/doctorProfile/doctorProfile?doctor=${encodeURIComponent(JSON.stringify(doctor))}`,
+    });
     },
 
     async applyDoctor(doctorId) {

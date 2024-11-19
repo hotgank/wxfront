@@ -7,7 +7,8 @@
         </view>
         <view class="doctor-list">
           <view v-for="doctor in doctors" :key="doctor.doctorId" class="doctor-card" @tap="navigateToChat(doctor.id)">
-            <image :src="doctor.avatar" mode="aspectFill" class="doctor-avatar"></image>
+            <image :src="doctor.avatar" mode="aspectFill" class="doctor-avatar"
+            @tap="navigateToDoctor(doctor)"></image>
             <view class="doctor-info">
               <text class="doctor-name">{{ doctor.name }}</text>
               <text class="doctor-hospital">{{ doctor.workplace }}</text>
@@ -49,6 +50,11 @@
         uni.navigateTo({
           url: `/pages/doctorChat/doctorChat?id=${doctorId}`
         });
+      },
+      navigateToDoctor(doctor) {
+        uni.navigateTo({
+      url: `/pages/doctorProfile/doctorProfile?doctor=${encodeURIComponent(JSON.stringify(doctor))}`,
+    });
       }
     }
   }
