@@ -11,7 +11,7 @@
         :class="{ 'generating': report.isGenerating }" @tap="viewReportDetails(report)">
         <view class="report-info">
           <text class="report-date">{{ report.date }}</text>
-          <text class="report-type">{{ report.type }}检测</text>
+          <text class="report-type">{{ report.reportType }}检测</text>
         </view>
         <view class="report-status-and-actions">
           <view v-if="report.isGenerating" class="generating-badge">
@@ -73,7 +73,7 @@ export default {
           return {
             reportId: report.reportId,
             date: date.toLocaleDateString(),
-            type: report.reportType,
+            reportType: report.reportType,
             isGenerating: report.state !== '检测完成',
             analyse: report.analyse,
             result: report.result,
@@ -101,8 +101,9 @@ export default {
       }
 
       if (!report.isGenerating) {
+        const params = encodeURIComponent(JSON.stringify(report));
         uni.navigateTo({
-          url: `/pages/reportDetails/reportDetails?reportId=${report.reportId}&type=${report.type}&date=${report.date}&comment=${report.comment || ''}&doctorId=${report.doctorId || ''}&image=${encodeURIComponent(report.url)}&result=${report.result}&analyse=${report.analyse}`
+          url: `/pages/reportDetails/reportDetails?report=${params}`,
         });
       } else {
         uni.showToast({
@@ -207,7 +208,8 @@ export default {
   align-items: center;
 }
 
-.generating-badge, .report-status {
+.generating-badge,
+.report-status {
   padding: 5px 10px;
   border-radius: 15px;
   margin-right: 10px;
@@ -221,7 +223,8 @@ export default {
   background-color: #4cd964;
 }
 
-.generating-text, .status-text {
+.generating-text,
+.status-text {
   color: #ffffff;
   font-size: 12px;
   font-weight: bold;

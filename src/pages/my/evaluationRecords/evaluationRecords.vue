@@ -4,8 +4,8 @@
       <text class="title">测评记录</text>
     </view>
     <scroll-view class="record-list" scroll-y="true">
-      <view v-for="(record, index) in sortedRecords" :key="index" class="record-card"
-        @tap="viewReportDetails(record.id)">
+      <view v-for="(record) in sortedRecords" :key="record.id" class="record-card"
+        @click="viewReportDetails(record.id)">
         <view class="record-info">
           <text class="record-name">{{ record.childName }}</text>
           <text class="record-type">{{ record.reportType }}</text>
@@ -39,6 +39,7 @@ export default {
   },
   onLoad() {
     this.fetchRecords();
+    console.log('sortedRecords', this.sortedRecords);
   },
   methods: {
 
@@ -51,23 +52,37 @@ export default {
         }
 
         this.records = res.map(record => {
-          // 将 createdAt 数组转换为 Date 对象
           const dateArray = record.createdAt;
-          const date = new Date(
-            dateArray[0], // 年
-            dateArray[1] - 1, // 月，JavaScript 的月份从 0 开始
-            dateArray[2], // 日
-            dateArray[3], // 时
-            dateArray[4], // 分
-            dateArray[5] // 秒
-          );
+          let date = null;
+
+          if (Array.isArray(dateArray) && dateArray.length === 6) {
+            date = new Date(
+              dateArray[0], // 年
+              dateArray[1] - 1, // 月
+              dateArray[2], // 日
+              dateArray[3], // 时
+              dateArray[4], // 分
+              dateArray[5]  // 秒
+            );
+          }
+
+          if (isNaN(date)) {
+            console.error('Invalid date:', dateArray);
+            date = new Date(); // 设置为当前时间或其他默认值
+          }
 
           return {
             id: record.id,
             childName: record.childName,
             reportType: record.reportType,
-            date: dayjs(date).format('YYYY-MM-DD HH:mm:ss'), // 格式化时间
-            isGenerating: record.state === '检测中', // 根据状态设置标记
+            date: dayjs(date).format('YYYY-MM-DD HH:mm:ss'),
+            isGenerating: record.state === '检测中',
+            state: record.state,
+            result: record.result,
+            analyse: record.analyse,
+            url: record.url,
+            comment: record.comment,
+            doctorId: record.doctorId,
           };
         });
       } catch (error) {
@@ -80,16 +95,24 @@ export default {
       }
     },
 
-    viewReportDetails(recordId) {
-      const record = this.records.find(r => r.id === recordId);
-      if (record.isGenerating) {
+
+    viewReportDetails(reportId) {
+      const report = this.records.find(r => r.id === reportId);
+      if (!report) {
+        console.error('报告未找到:', reportId);
+        return;
+      }
+
+      if (report.isGenerating) {
         uni.showToast({
           title: '报告正在生成中，请稍后查看',
-          icon: 'none'
+          icon: 'none',
         });
       } else {
+        // 构造参数字符串并跳转
+        const params = encodeURIComponent(JSON.stringify(report));
         uni.navigateTo({
-          url: `/pages/reportDetails/reportDetails?id=${recordId}`
+          url: `/pages/reportDetails/reportDetails?report=${params}`,
         });
       }
     }

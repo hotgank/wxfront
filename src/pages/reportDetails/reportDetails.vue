@@ -50,18 +50,24 @@ export default {
       }
     }
   },
-  async onLoad(option) {
-    this.report = {
-      reportId: option.reportId || null,
-      type: option.type || '',
-      date: option.date || '',
-      result: option.result || '请上传正确姿势和角度照片',
-      analyse: option.analyse || '',
-      doctorComment: option.comment || '暂无医生留言',
-      images: option.image ? [decodeURIComponent(option.image)] : []
-    };
-    this.reportId = option.reportId || null;
-
+  async onLoad(options) {
+    if (options.report) {
+      try {
+        const report = JSON.parse(decodeURIComponent(options.report));
+        this.report = {
+          type: report.reportType || '',
+          date: report.date || '',
+          result: report.result || '请上传正确姿势和角度照片',
+          analyse: report.analyse || '',
+          doctorComment: report.comment || '暂无医生留言',
+          images: report.url ? [report.url] : [], // 确保为数组
+        };
+      } catch (error) {
+        console.error('解析传递参数失败:', error);
+      }
+    } else {
+      console.warn('未接收到任何参数');
+    }
 
     // 调用下载方法并更新图片路径
     try {
