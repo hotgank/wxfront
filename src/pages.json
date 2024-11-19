@@ -1,6 +1,5 @@
 {
 	"pages": [
-		
 		{
 			"path": "pages/index/index",
 			"style": {
@@ -96,8 +95,19 @@
 			"style": {
 				"navigationBarTitleText": "Login"
 			}
+		},
+		{
+			"path": "pages/index/articles/articles",
+			"style": {
+				"navigationBarTitleText": "articles"
+			}
+		},
+		{
+			"path": "pages/index/articles/articleDetails/articleDetails",
+			"style": {
+				"navigationBarTitleText": "articleDetails"
+			}
 		}
-		
 	],
 	"tabBar": {
 		"color": "#7A7E83",
