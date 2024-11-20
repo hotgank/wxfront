@@ -5,14 +5,17 @@
     </view>
     <scroll-view class="doctor-list" scroll-y="true">
       <view v-for="(doctor) in doctors" :key="doctor.doctorId" class="doctor-card">
-        <image :src="doctor.avatarUrl || '/static/doctor-avatars/default.jpg'" mode="aspectFill" class="doctor-avatar" @tap="viewDoctorProfile(doctor)"></image>
+        <image :src="doctor.avatarUrl || '/static/doctor-avatars/default.jpg'" mode="aspectFill" class="doctor-avatar"
+          @tap="viewDoctorProfile(doctor)"></image>
         <view class="doctor-info">
           <text class="doctor-name">{{ doctor.name }}</text>
           <text class="doctor-title">{{ doctor.position || '医生' }}</text>
           <br>
           <text class="doctor-hospital">{{ doctor.workplace || '未知医院' }}</text>
         </view>
-        <button class="apply-button" @tap="applyDoctor(doctor.doctorId)">申请成为患者</button>
+        <button :class="['apply-button', getButtonClass(doctor.situation)]" @tap="handleButtonClick(doctor)">
+          {{ getButtonText(doctor.situation) }}
+        </button>
       </view>
     </scroll-view>
   </view>
@@ -29,6 +32,36 @@ export default {
   methods: {
     ...mapActions(['loadDoctors']), // 使用 Vuex 的 actions
 
+    getButtonClass(situation) {
+      switch (situation) {
+        case 'rejected': return 'rejected-button';
+        case 'approved': return 'approved-button';
+        case 'pending': return 'pending-button';
+        default: return 'apply-button';
+      }
+    },
+    getButtonText(situation) {
+      switch (situation) {
+        case 'rejected': return '已被拒绝';
+        case 'approved': return '我的医生';
+        case 'pending': return '申请中';
+        default: return '申请成为患者';
+      }
+    },
+    handleButtonClick(doctor) {
+      if (doctor.situation === 'approved') {
+        uni.navigateTo({
+          url: `/pages/doctorChat/doctorChat?doctor=${encodeURIComponent(JSON.stringify(doctor))}`
+        });
+      } else if (doctor.situation === 'rejected' || doctor.situation === 'pending') {
+        uni.showToast({
+          title: '您已经申请过该医生',
+          icon: 'none'
+        });
+      } else {
+        this.applyDoctor(doctor.doctorId);
+      }
+    },
     async fetchDoctors() {
       try {
         if (!this.doctors.length) { // 如果医生列表为空则加载数据
@@ -44,15 +77,18 @@ export default {
 
     viewDoctorProfile(doctor) {
       uni.navigateTo({
-      url: `/pages/doctorProfile/doctorProfile?doctor=${encodeURIComponent(JSON.stringify(doctor))}`,
-    });
+        url: `/pages/doctorProfile/doctorProfile?doctor=${encodeURIComponent(JSON.stringify(doctor))}`,
+      });
     },
 
     async applyDoctor(doctorId) {
-      
-
       try {
         await bindDoctorPatientRelation(doctorId);
+        // Update the doctor's situation in the local state
+        const doctorIndex = this.doctors.findIndex(d => d.doctorId === doctorId);
+        if (doctorIndex !== -1) {
+          this.$set(this.doctors[doctorIndex], 'situation', 'pending');
+        }
         uni.showModal({
           title: '申请成功',
           content: '您的申请已提交，请在申请记录中查看申请是否通过。',
@@ -64,7 +100,7 @@ export default {
           icon: 'none'
         });
       }
-    }
+    },
   },
 
   async mounted() {
@@ -143,7 +179,32 @@ export default {
   border-radius: 5px;
   font-size: 14px;
 }
+
 .doctor-name {
   margin-right: 8px;
+}
+
+.rejected-button {
+  background-color: #ff3b30;
+  color: #ffffff;
+}
+
+.approved-button {
+  background-color: #4cd964;
+  color: #ffffff;
+}
+
+.pending-button {
+  background-color: #ffcc00;
+  color: #ffffff;
+}
+
+.apply-button,
+.rejected-button,
+.approved-button,
+.pending-button {
+  padding: 8px 12px;
+  border-radius: 5px;
+  font-size: 14px;
 }
 </style>

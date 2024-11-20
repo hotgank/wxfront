@@ -4,11 +4,11 @@
       <text class="title">申请医生记录</text>
     </view>
     <scroll-view class="doctor-list" scroll-y="true">
-      <view v-for="(doctor, index) in doctors" :key="index" class="doctor-card" @tap="navigateToDoctorInfo(doctor.id)">
-        <image :src="doctor.avatar" mode="aspectFill" class="doctor-avatar"></image>
+      <view v-for="(doctor) in doctors" :key="doctor.doctorId" class="doctor-card" @tap="navigateToDoctorInfo(doctor)">
+        <image :src="doctor.avatarUrl" mode="aspectFill" class="doctor-avatar"></image>
         <view class="doctor-info">
           <text class="doctor-name">{{ doctor.name }}</text>
-          <text class="doctor-hospital">---{{ doctor.hospital }}</text>
+          <text class="doctor-hospital">---{{ doctor.workplace }}</text>
         </view>
         <view :class="['application-status', getStatusClass(doctor.status)]">
           <text>{{ doctor.status }}</text>
@@ -42,18 +42,22 @@ export default {
         return;
       }
       this.doctors = data.map(item => ({
-        id: item.doctor.doctorId,
+        doctorId: item.doctor.doctorId,
         name: item.doctor.name || item.doctor.username,
-        avatar: item.doctor.avatarUrl,
-        hospital: item.doctor.workplace || '未知医院',
+        avatarUrl: item.doctor.avatarUrl,
+        workplace: item.doctor.workplace || '未知医院',
         status: item.relationStatus === 'pending' ? '申请中' :
-                item.relationStatus === 'approved' ? '已通过' : '已拒绝'
+                item.relationStatus === 'approved' ? '已通过' : '已拒绝',
+        position: item.doctor.position || '未知职位',
+        experience: item.doctor.experience || '暂无',
+        rating: item.doctor.rating        
+                
       }));
     },
-    navigateToDoctorInfo(doctorId) {
+    navigateToDoctorInfo(doctor) {
       uni.navigateTo({
-        url: `/pages/doctorInfo/doctorInfo?id=${doctorId}`
-      });
+          url: `/pages/doctorProfile/doctorProfile?doctor=${encodeURIComponent(JSON.stringify(doctor))}`
+        });
     },
     getStatusClass(status) {
       switch (status) {

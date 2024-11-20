@@ -1,6 +1,53 @@
 // src/api/testApi.js
 import { getAllChildrenProfiles, getChildDetails, addChildProfile , updateChildProfile } from '@/api/child.js';
 import { uploadImage } from '@/api/uploadImage.js';
+import { getLast30Messages } from '@/api/relation.js';
+import { selectRelationIdByDoctorId ,sendMessageApi} from '@/api/relation';
+
+// 测试函数
+const testSelectRelationIdByDoctorId = async () => {
+  try {
+    const doctorId = 'D-d45b4b41-6465-437c-a8e6-8676f9e9a7d1'; // 替换为实际医生 ID
+    console.log('测试开始: 请求 relationId');
+
+    const relationId = await selectRelationIdByDoctorId(doctorId);
+    console.log('测试成功: 获取 relationId:', relationId);
+  } catch (error) {
+    console.error('测试失败: 获取 relationId 出现错误:', error.message || error);
+  }
+};
+async function testSendMessageApi() {
+  try {
+    const response = await sendMessageApi(
+      5, // relationId
+      'user', // senderType
+      'This is a test message', // messageText
+      'text', // messageType
+      null // url
+    );
+
+    console.log('测试发送消息成功:', response);
+  } catch (error) {
+    console.error('测试发送消息失败:', error.message);
+  }
+}
+
+
+// 执行测试
+testSendMessageApi();
+
+
+
+
+
+
+
+
+
+// 调用测试函数
+
+
+
 // const testGetAllChildrenProfiles = async () => {
 //   try {
 //     const profiles = await getAllChildrenProfiles();
@@ -71,11 +118,23 @@ export const startUploadTest = () => {
     },
   });
 };
+const testGetLast30Messages = async () => {
+  try {
+    // 替换为实际的 relationId
+    const relationId = 5; // 使用你要测试的 relationId
+    const messages = await getLast30Messages(relationId);
+    console.log(`获取 relationId ${relationId} 的最后 30 条消息成功:`, messages);
+  } catch (error) {
+    console.error('获取消息失败:', error.message);
+  }
+};
+
 
 // 调用 startUploadTest 来启动测试
 // startUploadTest();
 
-
+// testGetLast30Messages();
+// testSelectRelationIdByDoctorId();
 // 执行测试
 // testGetAllChildrenProfiles();
 // testGetChildDetails();

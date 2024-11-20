@@ -5,8 +5,8 @@ import request from '@/utils/request.js';
 export const getAllDoctors = async () => {
   try {
     const response = await request({
-      url: '/api/doctor/selectAll',
-      method: 'GET',
+      url: '/api/user/selectAllQualifiedDoctors',
+      method: 'POST',
       data: {} // 空请求体
     });
 
