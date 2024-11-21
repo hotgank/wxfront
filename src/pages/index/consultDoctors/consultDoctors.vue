@@ -24,7 +24,6 @@
 <script>
 import { mapState, mapActions } from 'vuex';
 import { bindDoctorPatientRelation } from '@/api/relation.js';
-import { getDoctorAvatar } from '@/api/image.js';
 
 export default {
   computed: {
@@ -68,23 +67,12 @@ export default {
         if (!this.doctors.length) {
           await this.loadDoctors(); // 加载医生数据
         }
+        else
+        {
+          console.log('Doctors already loaded');
+        }
 
-        // 异步获取每个医生的 Base64 头像
-        const updatedDoctors = await Promise.all(
-          this.doctors.map(async (doctor) => {
-            if (doctor.avatarUrl) {
-              try {
-                const base64Avatar = await getDoctorAvatar(doctor.avatarUrl);
-                doctor.avatarUrl = base64Avatar || doctor.avatarUrl; // 如果请求失败，保留原始 URL
-              } catch {
-                console.error(`获取医生 ${doctor.doctorId} 的头像失败`);
-              }
-            }
-            return doctor;
-          })
-        );
-
-        this.$store.commit('updateDoctors', updatedDoctors); // 提交更新后的医生列表到 Vuex
+        
       } catch (error) {
         uni.showToast({
           title: '加载医生信息失败',

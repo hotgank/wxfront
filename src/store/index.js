@@ -2,7 +2,8 @@ import Vue from 'vue';
 import Vuex from 'vuex';
 import { getAllDoctors } from '@/api/doctor.js';
 import { getAllChildrenProfiles, getChildDetails, addChildProfile, updateChildProfile, deleteChildProfile } from '@/api/child.js';
-import { getAllHealthArticles,getDoctorDetails } from '@/api/healthArticle.js'; // 引入获取科普文章的 API
+import { getAllHealthArticles, getDoctorDetails } from '@/api/healthArticle.js'; // 引入获取科普文章的 API
+import { getDoctorAvatar } from '@/api/image.js';
 
 Vue.use(Vuex);
 
@@ -57,7 +58,7 @@ const store = new Vuex.Store({
             },
           });
         });
-  
+
         await Promise.all(promises); // 并行加载所有医生信息
       } catch (error) {
         console.error('加载医生信息失败:', error.message);
@@ -77,10 +78,30 @@ const store = new Vuex.Store({
       if (state.doctors.length > 0) {
         return state.doctors;
       }
+
       try {
+        // 获取医生数据
         const doctors = await getAllDoctors();
-        commit('setDoctors', doctors);
-        return doctors;
+
+        // 更新头像
+        const updatedDoctors = await Promise.all(
+          doctors.map(async (doctor) => {
+            if (doctor.avatarUrl) {
+              try {
+                // 调用 getDoctorAvatar 获取 Base64 格式的头像
+                const base64Avatar = await getDoctorAvatar(doctor.avatarUrl);
+                doctor.avatarUrl = base64Avatar || doctor.avatarUrl; // 请求失败时保留原始 URL
+              } catch {
+                console.error(`获取医生 ${doctor.doctorId} 的头像失败`);
+              }
+            }
+            return doctor;
+          })
+        );
+
+        // 提交到 Vuex 的 state
+        commit('setDoctors', updatedDoctors);
+        return updatedDoctors;
       } catch (error) {
         console.error('加载医生信息失败:', error.message);
         throw error;
