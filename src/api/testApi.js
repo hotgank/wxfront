@@ -1,8 +1,39 @@
 // src/api/testApi.js
 import { getAllChildrenProfiles, getChildDetails, addChildProfile , updateChildProfile } from '@/api/child.js';
-import { uploadImage } from '@/api/uploadImage.js';
+import { uploadImage } from '@/api/image.js';
 import { getLast30Messages } from '@/api/relation.js';
 import { selectRelationIdByDoctorId ,sendMessageApi} from '@/api/relation';
+import { getDoctorAvatar } from '@/api/image'; // 引入封装好的头像请求函数
+
+// 测试医生头像请求函数
+const testGetDoctorAvatar = async () => {
+  const avatarUrl = 'http://localhost:8080/doctor_avatars/D-d45b4b41-6465-437c-a8e6-8676f9e9a7d1.jpg';
+
+  try {
+    console.log('测试开始：请求医生头像...');
+
+    // 调用函数，获取头像 base64 数据
+    const base64Data = await getDoctorAvatar(avatarUrl);
+
+    // 验证 Base64 数据是否存在
+    if (!base64Data) {
+      console.error('测试失败：未获取到头像 Base64 数据');
+      return;
+    }
+
+    console.log('头像 Base64 数据获取成功:', base64Data);
+
+    // 直接将图片的 Base64 数据赋值到图片的 src
+   
+
+    console.log('测试完成：头像图片已显示在页面中');
+  } catch (error) {
+    console.error('测试失败:', error);
+  }
+};
+
+// 执行测试函数
+// testGetDoctorAvatar();
 
 // 测试函数
 const testSelectRelationIdByDoctorId = async () => {
@@ -34,7 +65,7 @@ async function testSendMessageApi() {
 
 
 // 执行测试
-testSendMessageApi();
+// testSendMessageApi();
 
 
 

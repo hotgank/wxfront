@@ -20,6 +20,9 @@ const store = new Vuex.Store({
     setDoctors(state, doctors) {
       state.doctors = doctors;
     },
+    updateDoctors(state, doctors) {
+      state.doctors = doctors;
+    },
     setChildrenProfiles(state, profiles) {
       state.childrenProfiles = profiles;
     },

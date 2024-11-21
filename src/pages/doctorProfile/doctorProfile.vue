@@ -1,7 +1,7 @@
 <template>
   <view class="container">
     <view class="header">
-      <image :src="doctor.avatarUrl" mode="aspectFill" class="doctor-avatar"></image>
+      <image :src="doctor.avatarUrl || '/static/doctor-avatars/default.jpg'" mode="aspectFill" class="doctor-avatar"></image>
       <view class="doctor-basic-info">
         <text class="doctor-name">{{ doctor.name }}</text>
         <text class="doctor-position">{{ doctor.position||'主治医师' }}</text>

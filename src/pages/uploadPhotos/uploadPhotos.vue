@@ -22,7 +22,7 @@
 </template>
 
 <script>
-import { uploadImage } from '@/api/uploadImage'; // Make sure to adjust the import path
+import { uploadImage } from '@/api/image'; // Make sure to adjust the import path
 import { aiDetect } from '../../api/aiApi';
 export default {
   data() {

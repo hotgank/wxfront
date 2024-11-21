@@ -1,5 +1,5 @@
 import { BASE_URL } from '@/utils/request.js';
-
+import  request  from '@/utils/request.js';
 export const uploadImage = async (filePath) => {
   try {
     const token = uni.getStorageSync('token'); // 获取 token
@@ -27,4 +27,23 @@ export const uploadImage = async (filePath) => {
     console.error('图片上传出错:', error.message);
     throw error;
   }
+};
+/**
+ * 获取医生头像
+ * @param {string} avatarUrl - 医生头像的路径（相对路径或完整 URL）
+ * @returns {Promise} 返回一个 Promise，解析为图片 Blob 数据
+ */
+export const getDoctorAvatar = (avatarUrl) => {
+  return request({
+    url: `/api/url/base64`,
+    method: 'GET',
+    params: { url: avatarUrl },
+  }).then(([error, response]) => {
+    if (error) {
+      console.error('获取医生头像失败:', error);
+      return null;
+    }
+
+    return response;
+  });
 };
