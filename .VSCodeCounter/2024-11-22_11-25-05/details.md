@@ -1,10 +1,10 @@
 # Details
 
-Date : 2024-11-16 00:47:03
+Date : 2024-11-22 11:25:05
 
 Directory c:\\Users\\susen\\Desktop\\bodybaby\\bodybaby\\wxfront
 
-Total : 40 files,  25776 codes, 181 comments, 394 blanks, all 26351 lines
+Total : 43 files,  26639 codes, 224 comments, 520 blanks, all 27383 lines
 
 [Summary](results.md) / Details / [Diff Summary](diff.md) / [Diff Details](diff-details.md)
 
@@ -22,32 +22,35 @@ Total : 40 files,  25776 codes, 181 comments, 394 blanks, all 26351 lines
 | [src/App.vue](/src/App.vue) | Vue | 34 | 6 | 6 | 46 |
 | [src/api/aiApi.js](/src/api/aiApi.js) | JavaScript | 18 | 0 | 2 | 20 |
 | [src/api/child.js](/src/api/child.js) | JavaScript | 88 | 5 | 18 | 111 |
-| [src/api/doctor.js](/src/api/doctor.js) | JavaScript | 18 | 2 | 3 | 23 |
+| [src/api/doctor.js](/src/api/doctor.js) | JavaScript | 33 | 2 | 6 | 41 |
+| [src/api/healthArticle.js](/src/api/healthArticle.js) | JavaScript | 55 | 4 | 9 | 68 |
+| [src/api/image.js](/src/api/image.js) | JavaScript | 41 | 5 | 4 | 50 |
 | [src/api/login.js](/src/api/login.js) | JavaScript | 43 | 4 | 10 | 57 |
-| [src/api/relation.js](/src/api/relation.js) | JavaScript | 11 | 1 | 2 | 14 |
-| [src/api/report.js](/src/api/report.js) | JavaScript | 34 | 0 | 2 | 36 |
-| [src/api/testApi.js](/src/api/testApi.js) | JavaScript | 38 | 42 | 5 | 85 |
-| [src/api/uploadImage.js](/src/api/uploadImage.js) | JavaScript | 27 | 0 | 4 | 31 |
+| [src/api/relation.js](/src/api/relation.js) | JavaScript | 96 | 7 | 22 | 125 |
+| [src/api/report.js](/src/api/report.js) | JavaScript | 48 | 0 | 2 | 50 |
+| [src/api/testApi.js](/src/api/testApi.js) | JavaScript | 89 | 55 | 31 | 175 |
 | [src/main.js](/src/main.js) | JavaScript | 11 | 0 | 4 | 15 |
 | [src/manifest.json](/src/manifest.json) | JSON | 71 | 0 | 5 | 76 |
-| [src/pages.json](/src/pages.json) | JSON | 138 | 0 | 2 | 140 |
+| [src/pages.json](/src/pages.json) | JSON | 150 | 0 | 0 | 150 |
 | [src/pages/Login/Login.vue](/src/pages/Login/Login.vue) | Vue | 146 | 59 | 33 | 238 |
-| [src/pages/childReports/childReports.vue](/src/pages/childReports/childReports.vue) | Vue | 224 | 0 | 22 | 246 |
-| [src/pages/doctorChat/doctorChat.vue](/src/pages/doctorChat/doctorChat.vue) | Vue | 200 | 3 | 17 | 220 |
-| [src/pages/doctorProfile/doctorProfile.vue](/src/pages/doctorProfile/doctorProfile.vue) | Vue | 139 | 1 | 17 | 157 |
+| [src/pages/childReports/childReports.vue](/src/pages/childReports/childReports.vue) | Vue | 227 | 0 | 22 | 249 |
+| [src/pages/doctorChat/doctorChat.vue](/src/pages/doctorChat/doctorChat.vue) | Vue | 264 | 2 | 24 | 290 |
+| [src/pages/doctorProfile/doctorProfile.vue](/src/pages/doctorProfile/doctorProfile.vue) | Vue | 143 | 0 | 17 | 160 |
 | [src/pages/index/aiBodyCheck/aiBodyCheck.vue](/src/pages/index/aiBodyCheck/aiBodyCheck.vue) | Vue | 79 | 0 | 9 | 88 |
-| [src/pages/index/consultDoctors/consultDoctors.vue](/src/pages/index/consultDoctors/consultDoctors.vue) | Vue | 132 | 0 | 19 | 151 |
-| [src/pages/index/index.vue](/src/pages/index/index.vue) | Vue | 148 | 3 | 16 | 167 |
-| [src/pages/message/message.vue](/src/pages/message/message.vue) | Vue | 137 | 1 | 16 | 154 |
+| [src/pages/index/articles/articleDetails/articleDetails.vue](/src/pages/index/articles/articleDetails/articleDetails.vue) | Vue | 149 | 4 | 17 | 170 |
+| [src/pages/index/articles/articles.vue](/src/pages/index/articles/articles.vue) | Vue | 177 | 2 | 25 | 204 |
+| [src/pages/index/consultDoctors/consultDoctors.vue](/src/pages/index/consultDoctors/consultDoctors.vue) | Vue | 192 | 1 | 24 | 217 |
+| [src/pages/index/index.vue](/src/pages/index/index.vue) | Vue | 144 | 8 | 16 | 168 |
+| [src/pages/message/message.vue](/src/pages/message/message.vue) | Vue | 139 | 1 | 16 | 156 |
 | [src/pages/my/childProfile/childProfile.vue](/src/pages/my/childProfile/childProfile.vue) | Vue | 243 | 3 | 24 | 270 |
-| [src/pages/my/doctorApplications/doctorApplications.vue](/src/pages/my/doctorApplications/doctorApplications.vue) | Vue | 137 | 0 | 14 | 151 |
-| [src/pages/my/evaluationRecords/evaluationRecords.vue](/src/pages/my/evaluationRecords/evaluationRecords.vue) | Vue | 122 | 0 | 13 | 135 |
+| [src/pages/my/doctorApplications/doctorApplications.vue](/src/pages/my/doctorApplications/doctorApplications.vue) | Vue | 160 | 1 | 17 | 178 |
+| [src/pages/my/evaluationRecords/evaluationRecords.vue](/src/pages/my/evaluationRecords/evaluationRecords.vue) | Vue | 175 | 1 | 23 | 199 |
 | [src/pages/my/my.vue](/src/pages/my/my.vue) | Vue | 137 | 11 | 16 | 164 |
-| [src/pages/my/myDoctors/myDoctors.vue](/src/pages/my/myDoctors/myDoctors.vue) | Vue | 126 | 0 | 13 | 139 |
-| [src/pages/reportDetails/reportDetails.vue](/src/pages/reportDetails/reportDetails.vue) | Vue | 165 | 1 | 18 | 184 |
+| [src/pages/my/myDoctors/myDoctors.vue](/src/pages/my/myDoctors/myDoctors.vue) | Vue | 141 | 0 | 13 | 154 |
+| [src/pages/reportDetails/reportDetails.vue](/src/pages/reportDetails/reportDetails.vue) | Vue | 172 | 1 | 17 | 190 |
 | [src/pages/selectProfile/selectProfile.vue](/src/pages/selectProfile/selectProfile.vue) | Vue | 132 | 0 | 13 | 145 |
 | [src/pages/uploadPhotos/uploadPhotos.vue](/src/pages/uploadPhotos/uploadPhotos.vue) | Vue | 181 | 4 | 24 | 209 |
-| [src/store/index.js](/src/store/index.js) | JavaScript | 100 | 2 | 5 | 107 |
+| [src/store/index.js](/src/store/index.js) | JavaScript | 164 | 5 | 9 | 178 |
 | [src/uni.promisify.adaptor.js](/src/uni.promisify.adaptor.js) | JavaScript | 10 | 0 | 0 | 10 |
 | [src/uni.scss](/src/uni.scss) | SCSS | 37 | 25 | 15 | 77 |
 | [src/utils/request.js](/src/utils/request.js) | JavaScript | 38 | 3 | 4 | 45 |

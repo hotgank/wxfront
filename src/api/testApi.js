@@ -1,10 +1,9 @@
 // src/api/testApi.js
 import { getAllChildrenProfiles, getChildDetails, addChildProfile , updateChildProfile } from '@/api/child.js';
 import { uploadImage } from '@/api/image.js';
-import { getLast30Messages } from '@/api/relation.js';
-import { selectRelationIdByDoctorId ,sendMessageApi} from '@/api/relation';
+import { selectRelationIdByDoctorId } from '@/api/relation';
 import { getDoctorAvatar } from '@/api/image'; // 引入封装好的头像请求函数
-
+import { getLastMessage } from './message';
 // 测试医生头像请求函数
 const testGetDoctorAvatar = async () => {
   const avatarUrl = 'http://localhost:8080/doctor_avatars/D-d45b4b41-6465-437c-a8e6-8676f9e9a7d1.jpg';
@@ -35,6 +34,16 @@ const testGetDoctorAvatar = async () => {
 // 执行测试函数
 // testGetDoctorAvatar();
 
+const testGetLastmessage=async()=>{
+  try{
+    getLastMessage();
+    console.log('测试成功：获取最近一条消息成功');
+  }
+  catch(error){
+    console.error('测试失败:', error);
+  }
+}
+testGetLastmessage();
 // 测试函数
 const testSelectRelationIdByDoctorId = async () => {
   try {

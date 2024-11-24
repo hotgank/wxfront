@@ -3,27 +3,21 @@
     <view class="chat-header">
       <text class="doctor-name">{{ doctor.name }}</text>
     </view>
-    <scroll-view 
-      class="chat-body" 
-      scroll-y="true" 
-      :scroll-top="scrollTop" 
-      @scrolltoupper="loadMoreMessages"
-      :scroll-with-animation="true"
-      :refresher-enabled="true"
-      :refresher-threshold="100"
-      :refresher-triggered="isRefreshing"
-      @refresherrefresh="onRefresh"
-    >
+    <scroll-view class="chat-body" scroll-y="true" :scroll-top="scrollTop" @scrolltoupper="loadMoreMessages"
+      :scroll-with-animation="true" :refresher-enabled="true" :refresher-threshold="100"
+      :refresher-triggered="isRefreshing" @refresherrefresh="onRefresh">
       <view v-for="(message, index) in messages" :key="index" class="message-wrapper"
         :class="{ 'self-message': message.isSelf }">
         <image v-if="!message.isSelf" :src="doctor.avatarUrl" class="avatar"></image>
         <view class="message-content" :class="{ 'self-content': message.isSelf }">
-          <image v-if="message.type === 'image'" :src="message.content" mode="widthFix" class="message-image"
-            @tap="previewImage(message.content)"></image>
+          <!-- 根据消息类型显示 -->
+          <image v-if="message.type === 'image'" :src="message.url" mode="widthFix" class="message-image"
+            @tap="previewImage(message.url)"></image>
           <text v-else class="message-text">{{ message.content }}</text>
         </view>
         <image v-if="message.isSelf" :src="userAvatar" class="avatar"></image>
       </view>
+
     </scroll-view>
     <view class="chat-footer">
       <input v-model="inputMessage" class="message-input" type="text" placeholder="输入消息..." @confirm="sendMessage" />
@@ -34,8 +28,9 @@
 </template>
 
 <script>
-import { getLast30Messages, selectRelationIdByDoctorId, sendMessageApi } from '@/api/relation';
-
+import { selectRelationIdByDoctorId } from '@/api/relation';
+import { getLast30Messages, sendMessageApi } from '@/api/message';
+import { getDoctorAvatar, uploadChatImageApi } from '@/api/image';
 export default {
   data() {
     return {
@@ -77,14 +72,30 @@ export default {
         if (!this.relationId) {
           throw new Error('relationId 不能为空');
         }
+
         const messages = await getLast30Messages(this.relationId);
-        this.messages = messages
-          .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
-          .map(msg => ({
-            content: msg.messageText,
-            isSelf: msg.senderType === 'user',
-            type: msg.messageType === 'text' ? 'text' : 'image',
-          }));
+        this.messages = await Promise.all(
+          messages
+            .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+            .map(async (msg) => {
+              // 如果消息类型是图片，则转换 URL 为 Base64
+              let base64Image = null;
+              if (msg.messageType === 'image' && msg.url) {
+                try {
+                  base64Image = await getDoctorAvatar(msg.url); // 调用 API 获取 Base64
+                } catch (error) {
+                  console.error('获取 Base64 图片失败:', error);
+                }
+              }
+
+              return {
+                content: msg.messageType === 'text' ? msg.messageText : base64Image || msg.url,
+                isSelf: msg.senderType === 'user',
+                type: msg.messageType, // 保留 messageType
+                url: base64Image || msg.url, // 如果是图片，优先显示 Base64 编码
+              };
+            })
+        );
         this.scrollToBottom();
       } catch (error) {
         console.error('加载聊天记录失败:', error);
@@ -94,9 +105,11 @@ export default {
         });
       }
     },
+
+
     async sendMessage() {
       if (!this.inputMessage.trim()) return;
-      
+
       const newMessage = {
         content: this.inputMessage,
         isSelf: true,
@@ -104,7 +117,7 @@ export default {
       };
       this.messages.push(newMessage);
       this.inputMessage = '';
-      
+
       this.$nextTick(() => {
         this.scrollToBottom();
       });
@@ -126,42 +139,70 @@ export default {
     },
     async chooseImage() {
       uni.chooseImage({
-        count: 1,
+        count: 1, // 一次只选择一张图片
         success: async (res) => {
-          const tempFilePath = res.tempFilePaths[0];
+          const tempFilePath = res.tempFilePaths[0]; // 获取临时图片路径
           const newImageMessage = {
             content: tempFilePath,
             isSelf: true,
             type: 'image',
           };
-          this.messages.push(newImageMessage);
 
+          // 显示本地图片预览
+          this.messages.push(newImageMessage);
           this.$nextTick(() => {
             this.scrollToBottom();
           });
 
           try {
-            await sendMessageApi(
-              this.relationId,
-              'user',
-              '[图片]',
-              'image',
-              tempFilePath
-            );
-            console.log('图片发送成功:', tempFilePath);
+            // 调用图片上传接口
+            const response = await uploadChatImageApi(tempFilePath, this.relationId);
+
+            // 获取上传后的图片 URL
+            if (response && response.imageUrl) {
+              // 替换本地路径为服务器返回的 URL
+              newImageMessage.content = response.imageUrl;
+
+              // 调用消息发送接口以保存到后端
+              await sendMessageApi(
+                this.relationId,
+                'user',
+                '[图片]',
+                'image',
+                response.imageUrl
+              );
+              console.log('图片发送成功:', response.imageUrl);
+            } else {
+              throw new Error('上传图片失败，未返回 URL');
+            }
           } catch (error) {
             console.error('发送图片失败:', error);
             uni.showToast({
               title: '图片发送失败，请稍后重试',
               icon: 'none',
             });
+
+            // 移除上传失败的消息
+            const index = this.messages.indexOf(newImageMessage);
+            if (index !== -1) {
+              this.messages.splice(index, 1);
+            }
           }
+        },
+        fail: (err) => {
+          console.error('选择图片失败:', err);
+          uni.showToast({
+            title: '选择图片失败，请稍后重试',
+            icon: 'none',
+          });
         },
       });
     },
+
     previewImage(url) {
       uni.previewImage({
         urls: [url],
+        current: url,
       });
     },
     scrollToBottom() {

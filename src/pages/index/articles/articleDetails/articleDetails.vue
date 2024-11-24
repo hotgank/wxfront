@@ -68,7 +68,7 @@ export default {
       const doctorResponse = await getDoctorDetails(articleId);
       this.doctor = {
         name: doctorResponse.name,
-        doctorAvatar: doctorResponse.avatar
+        doctorAvatar: doctorResponse.avatarUrl
       };
     } catch (error) {
       console.error('加载数据失败:', error);

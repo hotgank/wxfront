@@ -12,7 +12,7 @@
           <view class="doctor-info">
             <text class="doctor-name">{{ doctor.name }}</text>
             <text class="doctor-hospital">{{ doctor.workplace }}</text>
-            <text class="doctor-specialty">{{ doctor.experience }}</text>
+            <text class="doctor-specialty">{{ doctor.experience ? doctor.experience : '小白' }}</text>
           </view>
         </view>
       </view>

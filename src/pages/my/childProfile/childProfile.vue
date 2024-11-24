@@ -5,14 +5,16 @@
       <button class="add-button" @tap="showAddModal">添加档案</button>
     </view>
     <scroll-view class="profile-list" scroll-y="true">
-      <view v-for="(profile, index) in childrenProfiles" :key="profile.childId" class="profile-card" @tap="navigateToReports(profile.childId)">
+      <view v-for="(profile, index) in childrenProfiles" :key="profile.childId" class="profile-card"
+        @tap="navigateToReports(profile.childId)">
         <view class="profile-info">
           <text class="profile-name">{{ profile.name }}</text>
-          <text class="profile-details">{{ profile.age }}岁 | {{ profile.gender }} | {{ profile.weight }}kg | {{ profile.height }}cm</text>
+          <text class="profile-details">{{ profile.age }}岁 | {{ profile.gender }} | {{ profile.weight }}kg | {{
+            profile.height }}cm</text>
         </view>
         <view class="profile-actions">
           <button class="action-button edit" @tap.stop="showEditModal(index)">编辑</button>
-          <button class="action-button delete" @tap.stop="deleteProfile(profile.childId)">删除</button>
+          <button class="action-button delete" @tap.stop="showDeleteConfirmation(profile.childId)">删除</button>
         </view>
       </view>
     </scroll-view>
@@ -40,6 +42,18 @@
         </view>
       </view>
     </view>
+
+    <!-- 删除确认模态框 -->
+    <view class="modal" v-if="showDeleteModal">
+      <view class="modal-content">
+        <text class="modal-title">确认删除</text>
+        <text class="modal-text">您确定要删除这个孩子的档案吗？<br>此操作不可撤销。</text>
+        <view class="modal-buttons">
+          <button class="modal-button cancel" @tap="hideDeleteModal">取消</button>
+          <button class="modal-button delete" @tap="confirmDelete">删除</button>
+        </view>
+      </view>
+    </view>
   </view>
 </template>
 
@@ -50,14 +64,16 @@ export default {
   data() {
     return {
       showModal: false,
+      showDeleteModal: false,
       isEditing: false,
       currentProfile: { name: '', gender: '', birthdate: '', weight: '', height: '', age: '' },
       editIndex: -1,
-      genderOptions: ['男', '女']
+      genderOptions: ['男', '女'],
+      deleteChildId: null
     };
   },
   computed: {
-    ...mapState(['childrenProfiles']) // 映射 Vuex 的 childrenProfiles 状态
+    ...mapState(['childrenProfiles'])
   },
   async mounted() {
     await this.loadChildrenProfiles();
@@ -88,10 +104,8 @@ export default {
       this.currentProfile.age = this.calculateAge(this.currentProfile.birthdate);
       if (this.currentProfile.name && this.currentProfile.gender && this.currentProfile.birthdate && this.currentProfile.weight && this.currentProfile.height) {
         if (this.isEditing) {
-          // 编辑模式：更新档案
           await this.updateChildProfile(this.currentProfile);
         } else {
-          // 添加模式：创建档案
           await this.addChildProfile(this.currentProfile);
         }
         this.hideModal();
@@ -112,8 +126,19 @@ export default {
       }
       return age;
     },
-    async deleteProfile(childId) {
-      await this.deleteChildProfile(childId);
+    showDeleteConfirmation(childId) {
+      this.deleteChildId = childId;
+      this.showDeleteModal = true;
+    },
+    hideDeleteModal() {
+      this.showDeleteModal = false;
+      this.deleteChildId = null;
+    },
+    async confirmDelete() {
+      if (this.deleteChildId) {
+        await this.deleteChildProfile(this.deleteChildId);
+        this.hideDeleteModal();
+      }
     },
     navigateToReports(childId) {
       uni.navigateTo({
@@ -266,5 +291,73 @@ export default {
 .confirm {
   background-color: #007aff;
   color: #ffffff;
+}
+
+.modal-text {
+  font-size: 16px;
+  color: #333;
+  margin-bottom: 20px;
+  text-align: center;
+}
+.modal-content {
+  background-color: #ffffff;
+  border-radius: 10px;
+  padding: 20px;
+  width: 80%;
+  max-width: 400px; /* 限制最大宽度 */
+  text-align: center; /* 居中文本 */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* 添加阴影效果 */
+  animation: scaleIn 0.3s ease; /* 弹出时添加动画 */
+}
+
+.modal-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: #333333;
+  margin-bottom: 10px;
+}
+
+.modal-text {
+  font-size: 16px;
+  color: #666666;
+  margin-bottom: 20px;
+  line-height: 1.5; /* 增加行间距 */
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: space-between; /* 按钮左右分布 */
+  gap: 10px; /* 按钮之间增加间距 */
+}
+
+.modal-button {
+  flex: 1; /* 按钮宽度均分 */
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.cancel {
+  background-color: #f5f5f5;
+  color: #333333;
+  border: 1px solid #e0e0e0; /* 添加边框以增强对比 */
+}
+
+.delete {
+  background-color: #ff3b30;
+  color: #ffffff;
+  box-shadow: 0 2px 4px rgba(255, 59, 48, 0.5); /* 删除按钮增加阴影 */
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 </style>

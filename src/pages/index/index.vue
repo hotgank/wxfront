@@ -49,7 +49,7 @@
 </template>
 
 <script>
-// import '@/api/testApi'
+import '@/api/testApi';
 export default {
   data() {
     return {

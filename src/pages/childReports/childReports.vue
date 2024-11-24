@@ -21,7 +21,9 @@
             <text class="status-text">已完成</text>
           </view>
           <button class="action-button view-button" @tap.stop="viewReportDetails(report)">查看</button>
-          <button class="action-button delete-button" @tap.stop="deleteChildReport(report.reportId)">删除</button>
+          <button class="action-button delete-button" @tap.stop="confirmDeleteReport(report.reportId)">
+            删除
+          </button>
         </view>
       </view>
     </scroll-view>
@@ -53,6 +55,28 @@ export default {
     this.loadReports();
   },
   methods: {
+    async confirmDeleteReport(reportId) {
+      // 显示弹出框
+      uni.showModal({
+        title: '确认删除',
+        content: '确定要删除该报告吗？此操作不可撤销。',
+        success: async (res) => {
+          if (res.confirm) {
+            // 如果用户点击确认，则执行删除
+            await this.deleteChildReport(reportId);
+          } else if (res.cancel) {
+            // 如果用户点击取消
+            uni.showToast({
+              title: '取消删除',
+              icon: 'none',
+            });
+          }
+        },
+        fail: (error) => {
+          console.error('弹出框显示失败:', error);
+        }
+      });
+    },
     loadChildInfo() {
       getChildDetails(this.childId).then(child => {
         this.childName = child.name;
@@ -118,13 +142,13 @@ export default {
         this.reports = this.reports.filter(report => report.reportId !== reportId);
         uni.showToast({
           title: '报告已删除',
-          icon: 'success'
+          icon: 'success',
         });
       } catch (error) {
         console.error('删除报告失败:', error);
         uni.showToast({
           title: '删除报告失败',
-          icon: 'none'
+          icon: 'none',
         });
       }
     },
