@@ -4,18 +4,14 @@
       <text class="doctor-name">{{ doctor.name }}</text>
     </view>
     <scroll-view class="chat-body" scroll-y="true" :scroll-top="scrollTop" @scrolltoupper="loadMoreMessages"
-      :scroll-with-animation="true" :refresher-enabled="true" :refresher-threshold="100"
+      @scrolltolower="loadLatestMessages" :scroll-with-animation="true" :refresher-enabled="true"
       :refresher-triggered="isRefreshing" @refresherrefresh="onRefresh">
-      <view v-for="(message, index) in messages" :key="index" class="message-wrapper"
+      <view v-for="message in messages" :key="message.messageSeq" class="message-wrapper"
         :class="{ 'self-message': message.isSelf }">
         <image v-if="!message.isSelf" :src="doctor.avatarUrl" class="avatar"></image>
         <view class="message-content" :class="{ 'self-content': message.isSelf }">
-          <!-- 根据消息类型显示 -->
-          <image v-if="message.type === 'image'" :src="message.localUrl || message.url" 
-            mode="widthFix"
-            class="message-image"
-            @tap="previewImage(message.localUrl || message.url)"
-            ></image>
+          <image v-if="message.type === 'image'" :src="message.content" mode="widthFix" class="message-image"
+            alt="Message image"></image>
           <text v-else class="message-text">{{ message.content }}</text>
         </view>
         <image v-if="message.isSelf" :src="userAvatar" class="avatar"></image>
@@ -32,8 +28,9 @@
 
 <script>
 import { selectRelationIdByDoctorId } from '@/api/relation';
-import { getLast30Messages, sendMessageApi } from '@/api/message';
+import { getLast30Messages, getMessagesBefore, getMessagesAfter, sendMessageApi } from '@/api/message';
 import { getDoctorAvatar, uploadChatImageApi } from '@/api/image';
+
 export default {
   data() {
     return {
@@ -52,6 +49,10 @@ export default {
       scrollTop: 0,
       userAvatar: '',
       isRefreshing: false,
+      messageSeqBefore: null, // 用于加载历史消息
+      messageSeqAfter: null,  // 用于加载最新消息
+      loadingMore: false,     // 防止重复加载
+      loadingLatest: false,   // 防止重复加载
     };
   },
   async onLoad(option) {
@@ -61,6 +62,7 @@ export default {
       }
       this.relationId = await selectRelationIdByDoctorId(this.doctor.doctorId);
       await this.fetchMessages();
+      this.scrollToBottom(); // 初始化完成后滚动到底部
     } catch (error) {
       console.error('页面初始化失败:', error);
       uni.showToast({
@@ -69,47 +71,62 @@ export default {
       });
     }
   },
+
   methods: {
+    // 初始加载消息
     async fetchMessages() {
       try {
-        if (!this.relationId) {
-          throw new Error('relationId 不能为空');
-        }
-
+        console.log('开始加载初始化消息');
         const messages = await getLast30Messages(this.relationId);
-        this.messages = await Promise.all(
-          messages
-            .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
-            .map(async (msg) => {
-              // 如果消息类型是图片，则转换 URL 为 Base64
-              let base64Image = null;
-              if (msg.messageType === 'image' && msg.url) {
-                try {
-                  base64Image = await getDoctorAvatar(msg.url); // 调用 API 获取 Base64
-                } catch (error) {
-                  console.error('获取 Base64 图片失败:', error);
-                }
-              }
+        console.log('初始消息数据:', messages); // 日志
 
-              return {
-                content: msg.messageType === 'text' ? msg.messageText : base64Image || msg.url,
-                isSelf: msg.senderType === 'user',
-                type: msg.messageType, // 保留 messageType
-                url: base64Image || msg.url, // 如果是图片，优先显示 Base64 编码
-              };
-            })
-        );
+        const processedMessages = await this.processMessages(messages);
+        console.log('处理后的消息:', processedMessages); // 日志
+
+        this.messages = processedMessages.sort((a, b) => a.messageSeq - b.messageSeq);
+
+        // 初始化 messageSeqBefore 和 messageSeqAfter
+        this.messageSeqBefore = this.messages[0]?.messageSeq || null;
+        this.messageSeqAfter = this.messages[this.messages.length - 1]?.messageSeq || null;
+
+        console.log('messageSeqBefore:', this.messageSeqBefore, 'messageSeqAfter:', this.messageSeqAfter);
+
         this.scrollToBottom();
       } catch (error) {
-        console.error('加载聊天记录失败:', error);
+        console.error('加载消息失败:', error);
         uni.showToast({
-          title: '加载聊天记录失败，请稍后重试',
+          title: '加载消息失败，请稍后重试',
           icon: 'none',
         });
       }
     },
 
+    // 处理消息数据
+    async processMessages(messages) {
+      return Promise.all(
+        messages
+          .filter((msg) => msg && msg.messageSeq) // 确保消息有效并包含 messageSeq
+          .map(async (msg) => {
+            let content = msg.messageText;
+            if (msg.messageType === 'image' && msg.url) {
+              try {
+                content = await getDoctorAvatar(msg.url); // 默认使用 URL
+              } catch (error) {
+                console.error('加载图片失败:', error);
+              }
+            }
+            return {
+              content: content,
+              isSelf: msg.senderType === 'user',
+              type: msg.messageType,
+              messageSeq: msg.messageSeq, // 确保 messageSeq 正确设置
+            };
+          })
+      );
+    },
 
+
+    // 发送消息
     async sendMessage() {
       if (!this.inputMessage.trim()) return;
 
@@ -126,11 +143,7 @@ export default {
       });
 
       try {
-        await sendMessageApi(
-          this.relationId,
-          'user',
-          newMessage.content
-        );
+        await sendMessageApi(this.relationId, 'user', newMessage.content);
         console.log('消息发送成功:', newMessage.content);
       } catch (error) {
         console.error('发送消息失败:', error);
@@ -140,77 +153,72 @@ export default {
         });
       }
     },
-    async chooseImage() {
-      uni.chooseImage({
-        count: 1, // 一次只选择一张图片
-        success: async (res) => {
-          const tempFilePath = res.tempFilePaths[0]; // 获取临时图片路径
 
-          // 创建临时消息对象
-          const newImageMessage = {
-            content: tempFilePath,
-            localUrl: tempFilePath, // 本地存储的路径
-            isSelf: true,
-            type: 'image',
-            url: null, // 后端返回的 URL 暂时为空
-          };
+    // 加载更多历史消息
+    async loadMoreMessages() {
+      if (this.loadingMore || !this.messageSeqBefore) return;
+      this.loadingMore = true;
 
-          // 添加到消息列表中显示
-          this.messages.push(newImageMessage);
-          this.$nextTick(() => {
-            this.scrollToBottom();
-          });
+      console.log('开始加载历史消息', this.messageSeqBefore);
 
-          try {
-            // 调用图片上传接口
-            const response = await uploadChatImageApi(tempFilePath, this.relationId);
+      try {
+        const moreMessages = await getMessagesBefore(this.relationId, this.messageSeqBefore)
 
-            if (response && response.imageUrl) {
-              // 更新消息对象的 URL
-              newImageMessage.url = response.imageUrl;
+        if (moreMessages.length === 0) {
+          console.log('没有更多历史消息');
+          return; // 如果为空，直接退出
+        }
 
-              // 调用消息发送接口以保存到后端
-              await sendMessageApi(
-                this.relationId,
-                'user',
-                '[图片]',
-                'image',
-                response.imageUrl
-              );
-              console.log('图片发送成功:', response.imageUrl);
-            } else {
-              throw new Error('上传图片失败，未返回 URL');
-            }
-          } catch (error) {
-            console.error('发送图片失败:', error);
-            uni.showToast({
-              title: '图片发送失败，请稍后重试',
-              icon: 'none',
-            });
+        const processedMessages = await this.processMessages(moreMessages[1]);
+        console.log('处理后的历史消息:', processedMessages);
 
-            // 移除上传失败的消息
-            const index = this.messages.indexOf(newImageMessage);
-            if (index !== -1) {
-              this.messages.splice(index, 1);
-            }
-          }
-        },
-        fail: (err) => {
-          console.error('选择图片失败:', err);
-          uni.showToast({
-            title: '选择图片失败，请稍后重试',
-            icon: 'none',
-          });
-        },
-      });
+        this.messages = processedMessages
+          .sort((a, b) => a.messageSeq - b.messageSeq)
+          .concat(this.messages);
+
+        this.messageSeqBefore = this.messages[0]?.messageSeq || this.messageSeqBefore; // 更新序列号
+        console.log('更新后的历史消息:', this.messages);
+      } catch (error) {
+        console.error('加载历史消息失败:', error);
+        uni.showToast({
+          title: '加载历史消息失败，请稍后重试',
+          icon: 'none',
+        });
+      } finally {
+        this.loadingMore = false;
+      }
     },
 
-    previewImage(url) {
-      uni.previewImage({
-        urls: [url],
-        current: url,
-      });
+    async loadLatestMessages() {
+      console.log('触发了加载最新消息', this.messageSeqAfter);
+      if (this.loadingLatest || !this.messageSeqAfter) return;
+      console.log('开始加载最新消息');
+      this.loadingLatest = true;
+
+      try {
+        const latestMessages = await getMessagesAfter(this.relationId, this.messageSeqAfter);
+
+        if (latestMessages.length === 0) {
+          console.log('没有新消息');
+          return;
+        }
+
+        const processedMessages = await this.processMessages(latestMessages[1]);
+        this.messages = this.messages.concat(
+          processedMessages.sort((a, b) => a.messageSeq - b.messageSeq)
+        );
+
+        this.messageSeqAfter = this.messages[this.messages.length - 1]?.messageSeq || this.messageSeqAfter;
+        console.log('加载最新消息成功');
+      } catch (error) {
+        console.error('加载最新消息失败:', error);
+      } finally {
+        this.loadingLatest = false;
+      }
     },
+
+
+    // 滚动到底部
     scrollToBottom() {
       this.$nextTick(() => {
         const query = uni.createSelectorQuery().in(this);
@@ -223,14 +231,38 @@ export default {
         });
       });
     },
-    async loadMoreMessages() {
-      console.log('加载更多消息');
-      // Implement logic for loading more messages here
-    },
+
     async onRefresh() {
-      this.isRefreshing = true;
-      await this.fetchMessages();
-      this.isRefreshing = false;
+      console.log("触发刷新操作，加载历史消息");
+      this.isRefreshing = true; // 开启刷新状态
+
+      try {
+        if (!this.messageSeqBefore) {
+          console.log("没有可加载的历史消息");
+          return;
+        }
+
+        // 调用加载历史消息的方法
+        await this.loadMoreMessages();
+        console.log("历史消息加载成功");
+      } catch (error) {
+        console.error("刷新时加载历史消息失败:", error);
+        uni.showToast({
+          title: "加载历史消息失败，请稍后重试",
+          icon: "none",
+        });
+      } finally {
+        this.isRefreshing = false; // 关闭刷新状态
+      }
+    },
+
+
+    // 图片预览
+    previewImage(url) {
+      uni.previewImage({
+        urls: [url],
+        current: url,
+      });
     },
   },
 };

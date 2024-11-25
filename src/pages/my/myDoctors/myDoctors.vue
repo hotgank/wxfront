@@ -6,7 +6,7 @@
         <text class="title">我的医生</text>
       </view>
       <view class="doctor-list">
-        <view v-for="doctor in doctors" :key="doctor.doctorId" class="doctor-card" @tap="navigateToChat(doctor)">
+        <view v-for="doctor in doctors" :key="doctor.doctorId" class="doctor-card">
           <image :src="doctor.avatarUrl || '/static/doctor-avatars/default.jpg'" mode="aspectFill" class="doctor-avatar"
             @tap="navigateToDoctor(doctor)"></image>
           <view class="doctor-info">
@@ -14,15 +14,18 @@
             <text class="doctor-hospital">{{ doctor.workplace }}</text>
             <text class="doctor-specialty">{{ doctor.experience ? doctor.experience : '小白' }}</text>
           </view>
+          <button class="end-binding-button" @tap="endBinding(doctor)">结束绑定</button>
         </view>
       </view>
     </view>
   </view>
 </template>
 
+
 <script>
 import { getMyDoctors } from '@/api/doctor'
 import { getDoctorAvatar } from '@/api/image'
+import { removeConsultationBinding } from '@/api/relation'
 export default {
   data() {
     return {
@@ -57,6 +60,33 @@ export default {
           title: '加载医生信息失败',
           icon: 'none',
         });
+      }
+    },
+    async endBinding(doctor) {
+      try {
+        const confirmation = await uni.showModal({
+          title: '确认操作',
+          content: `确定要解除与 ${doctor.name} 的绑定吗？`,
+          confirmText: '确定',
+          cancelText: '取消',
+        });
+
+        if (confirmation.confirm) {
+          await removeConsultationBinding(doctor.doctorId); // Call API
+          uni.showToast({
+            title: '解除绑定成功',
+            icon: 'success',
+          });
+
+          // Remove doctor from the list
+          this.doctors = this.doctors.filter((d) => d.doctorId !== doctor.doctorId);
+        }
+      } catch (error) {
+        uni.showToast({
+          title: '解除绑定失败，请稍后重试',
+          icon: 'none',
+        });
+        console.error('解除绑定失败:', error);
       }
     },
     navigateToChat(doctor) {
@@ -150,5 +180,16 @@ export default {
 .doctor-specialty {
   font-size: 14px;
   color: #666;
+}
+
+.end-binding-button {
+  padding: 5px 10px;
+  margin-top: 10px;
+  background-color: #f56c6c;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  font-size: 20px;
+  cursor: pointer;
 }
 </style>

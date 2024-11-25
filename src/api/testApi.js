@@ -4,6 +4,34 @@ import { uploadImage } from '@/api/image.js';
 import { selectRelationIdByDoctorId } from '@/api/relation';
 import { getDoctorAvatar } from '@/api/image'; // 引入封装好的头像请求函数
 import { getLastMessage } from './message';
+import { getMessagesBefore } from '@/api/message';
+
+async function testGetMessagesBefore() {
+  const testRelationId = '5'; // 测试用 relationId
+  const testMessageSeq = 10; // 测试用 messageSeq
+
+  try {
+    console.log(`测试开始: relationId=${testRelationId}, messageSeq=${testMessageSeq}`);
+
+    const result = await getMessagesBefore(testRelationId, testMessageSeq);
+
+    console.log('测试成功，返回数据:', result);
+
+    // 检查数据是否符合预期
+    if (Array.isArray(result) && result.length > 0) {
+      console.log('返回的消息数据正常:', result);
+    } else if (Array.isArray(result) && result.length === 0) {
+      console.log('返回空数组，表示没有更多历史消息');
+    } else {
+      console.error('返回数据格式异常:', result);
+    }
+  } catch (error) {
+    console.error('测试失败，错误信息:', error);
+  }
+}
+
+// 调用测试函数
+testGetMessagesBefore();
 // 测试医生头像请求函数
 const testGetDoctorAvatar = async () => {
   const avatarUrl = 'http://localhost:8080/doctor_avatars/D-d45b4b41-6465-437c-a8e6-8676f9e9a7d1.jpg';
@@ -43,7 +71,7 @@ const testGetLastmessage=async()=>{
     console.error('测试失败:', error);
   }
 }
-testGetLastmessage();
+// testGetLastmessage();
 // 测试函数
 const testSelectRelationIdByDoctorId = async () => {
   try {

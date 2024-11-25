@@ -83,21 +83,14 @@ export async function getLast30Messages(relationId) {
  * @returns {Promise} 请求返回数据
  */
 export function getMessagesBefore(relationId, messageSeq) {
-    return request({
-      url: `/api/messages/before/${relationId}/${messageSeq}`,
-      method: 'GET',
-    }).then(([error, response]) => {
-      if (error) {
-        console.error('获取指定消息序列号之前的信息失败:', error);
-        throw error;
-      }
-      if (response.statusCode === 200) {
-        return response.data;
-      } else {
-        console.error('请求失败:', response);
-        throw new Error(`请求失败，状态码: ${response.statusCode}`);
-      }
-    });
+  if (!relationId || !messageSeq) {
+    return Promise.reject(new Error('relationId 和 messageSeq 是必传参数'));
+  }
+
+  return request({
+    url: `/api/messages/before/${relationId}/${messageSeq}`,
+    method: 'GET',
+  });
   }
  
 
