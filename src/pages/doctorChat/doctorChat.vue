@@ -11,8 +11,11 @@
         <image v-if="!message.isSelf" :src="doctor.avatarUrl" class="avatar"></image>
         <view class="message-content" :class="{ 'self-content': message.isSelf }">
           <!-- 根据消息类型显示 -->
-          <image v-if="message.type === 'image'" :src="message.url" mode="widthFix" class="message-image"
-            @tap="previewImage(message.url)"></image>
+          <image v-if="message.type === 'image'" :src="message.localUrl || message.url" 
+            mode="widthFix"
+            class="message-image"
+            @tap="previewImage(message.localUrl || message.url)"
+            ></image>
           <text v-else class="message-text">{{ message.content }}</text>
         </view>
         <image v-if="message.isSelf" :src="userAvatar" class="avatar"></image>
@@ -142,13 +145,17 @@ export default {
         count: 1, // 一次只选择一张图片
         success: async (res) => {
           const tempFilePath = res.tempFilePaths[0]; // 获取临时图片路径
+
+          // 创建临时消息对象
           const newImageMessage = {
             content: tempFilePath,
+            localUrl: tempFilePath, // 本地存储的路径
             isSelf: true,
             type: 'image',
+            url: null, // 后端返回的 URL 暂时为空
           };
 
-          // 显示本地图片预览
+          // 添加到消息列表中显示
           this.messages.push(newImageMessage);
           this.$nextTick(() => {
             this.scrollToBottom();
@@ -158,10 +165,9 @@ export default {
             // 调用图片上传接口
             const response = await uploadChatImageApi(tempFilePath, this.relationId);
 
-            // 获取上传后的图片 URL
             if (response && response.imageUrl) {
-              // 替换本地路径为服务器返回的 URL
-              newImageMessage.content = response.imageUrl;
+              // 更新消息对象的 URL
+              newImageMessage.url = response.imageUrl;
 
               // 调用消息发送接口以保存到后端
               await sendMessageApi(
