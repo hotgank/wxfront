@@ -101,6 +101,70 @@ export default {
       }
     },
 
+    async chooseImage() {
+      uni.chooseImage({
+        count: 1, // 一次只选择一张图片
+        success: async (res) => {
+          const tempFilePath = res.tempFilePaths[0]; // 获取临时图片路径
+
+          // 创建临时消息对象
+          const newImageMessage = {
+            content: tempFilePath,
+            localUrl: tempFilePath, // 本地存储的路径
+            isSelf: true,
+            type: 'image',
+            url: null, // 后端返回的 URL 暂时为空
+          };
+
+          // 添加到消息列表中显示
+          this.messages.push(newImageMessage);
+          this.$nextTick(() => {
+            this.scrollToBottom();
+          });
+
+          try {
+            // 调用图片上传接口
+            const response = await uploadChatImageApi(tempFilePath, this.relationId);
+
+            if (response && response.imageUrl) {
+              // 更新消息对象的 URL
+              newImageMessage.url = response.imageUrl;
+
+              // 调用消息发送接口以保存到后端
+              await sendMessageApi(
+                this.relationId,
+                'user',
+                '[图片]',
+                'image',
+                response.imageUrl
+              );
+              console.log('图片发送成功:', response.imageUrl);
+            } else {
+              throw new Error('上传图片失败，未返回 URL');
+            }
+          } catch (error) {
+            console.error('发送图片失败:', error);
+            uni.showToast({
+              title: '图片发送失败，请稍后重试',
+              icon: 'none',
+            });
+
+            // 移除上传失败的消息
+            const index = this.messages.indexOf(newImageMessage);
+            if (index !== -1) {
+              this.messages.splice(index, 1);
+            }
+          }
+        },
+        fail: (err) => {
+          console.error('选择图片失败:', err);
+          uni.showToast({
+            title: '选择图片失败，请稍后重试',
+            icon: 'none',
+          });
+        },
+      });
+    },
     // 处理消息数据
     async processMessages(messages) {
       return Promise.all(
