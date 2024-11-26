@@ -76,7 +76,9 @@ const store = new Vuex.Store({
     },
     async loadDoctors({ commit, state }) {
       if (state.doctors.length > 0) {
-        return state.doctors;
+        //return state.doctors;
+        //清理旧数据
+        commit('setDoctors', []);
       }
 
       try {
