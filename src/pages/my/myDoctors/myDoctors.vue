@@ -14,7 +14,7 @@
             <text class="doctor-hospital">{{ doctor.workplace }}</text>
             <text class="doctor-specialty">{{ doctor.experience ? doctor.experience : '小白' }}</text>
           </view>
-          <button class="end-binding-button" @tap="endBinding(doctor)">结束绑定</button>
+          <button class="end-binding-button" @tap.stop="endBinding(doctor)">结束绑定</button>
         </view>
       </view>
     </view>

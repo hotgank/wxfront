@@ -10,7 +10,7 @@
         :class="{ 'self-message': message.isSelf }">
         <image v-if="!message.isSelf" :src="doctor.avatarUrl" class="avatar"></image>
         <view class="message-content" :class="{ 'self-content': message.isSelf }">
-          <image v-if="message.type === 'image'" :src="message.content" mode="widthFix" class="message-image"
+          <image v-if="message.type === 'image'" :src="message.localUrl || message.url" mode="widthFix" class="message-image"
             alt="Message image"></image>
           <text v-else class="message-text">{{ message.content }}</text>
         </view>
@@ -103,53 +103,54 @@ export default {
 
     async chooseImage() {
       uni.chooseImage({
-        count: 1, // 一次只选择一张图片
+        count: 1,
         success: async (res) => {
           const tempFilePath = res.tempFilePaths[0]; // 获取临时图片路径
 
-          // 创建临时消息对象
-          const newImageMessage = {
-            content: tempFilePath,
-            localUrl: tempFilePath, // 本地存储的路径
+          // 创建临时图片消息对象
+          const newImageMessage = { // 临时路径
+            localUrl: tempFilePath,
             isSelf: true,
             type: 'image',
-            url: null, // 后端返回的 URL 暂时为空
+            url: null, // 后端返回的 URL
           };
 
-          // 添加到消息列表中显示
+          // 添加到消息列表中
           this.messages.push(newImageMessage);
           this.$nextTick(() => {
             this.scrollToBottom();
           });
 
           try {
-            // 调用图片上传接口
+            // 上传图片到服务器
             const response = await uploadChatImageApi(tempFilePath, this.relationId);
 
             if (response && response.imageUrl) {
-              // 更新消息对象的 URL
+              // 更新消息对象的 URL 和内容
               newImageMessage.url = response.imageUrl;
+              //newImageMessage.content = response.imageUrl;
 
-              // 调用消息发送接口以保存到后端
+              // 不再发送 `[图片]` 文本消息，而是更新消息状态到后端
               await sendMessageApi(
                 this.relationId,
                 'user',
-                '[图片]',
+                '[图片]', // 后端存储类型标识
                 'image',
                 response.imageUrl
               );
+
               console.log('图片发送成功:', response.imageUrl);
             } else {
-              throw new Error('上传图片失败，未返回 URL');
+              throw new Error('图片上传失败，未返回 URL');
             }
           } catch (error) {
-            console.error('发送图片失败:', error);
+            console.error('图片发送失败:', error);
             uni.showToast({
               title: '图片发送失败，请稍后重试',
               icon: 'none',
             });
 
-            // 移除上传失败的消息
+            // 移除发送失败的临时消息
             const index = this.messages.indexOf(newImageMessage);
             if (index !== -1) {
               this.messages.splice(index, 1);
@@ -171,17 +172,18 @@ export default {
         messages
           .filter((msg) => msg && msg.messageSeq) // 确保消息有效并包含 messageSeq
           .map(async (msg) => {
-            let content = msg.messageText;
+            let url = msg.url;
             if (msg.messageType === 'image' && msg.url) {
               try {
-                content = await getDoctorAvatar(msg.url); // 默认使用 URL
+                url = await getDoctorAvatar(msg.url); // 默认使用 URL
               } catch (error) {
                 console.error('加载图片失败:', error);
               }
             }
             return {
-              content: content,
+              content: msg.messageText,
               isSelf: msg.senderType === 'user',
+              url: url,
               type: msg.messageType,
               messageSeq: msg.messageSeq, // 确保 messageSeq 正确设置
             };
@@ -301,14 +303,7 @@ export default {
       this.isRefreshing = true; // 开启刷新状态
 
       try {
-        if (!this.messageSeqBefore) {
-          console.log("没有可加载的历史消息");
-          return;
-        }
-
-        // 调用加载历史消息的方法
-        await this.loadMoreMessages();
-        console.log("历史消息加载成功");
+        await this.fetchMessages()
       } catch (error) {
         console.error("刷新时加载历史消息失败:", error);
         uni.showToast({

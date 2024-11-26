@@ -67,19 +67,7 @@ export function removeConsultationBinding(doctorId) {
       doctorId,
     },
   })
-    .then((response) => {
-      if (response.statusCode === 200) {
-        console.log('Consultation binding removed successfully:', response[1]);
-        return response;
-      } else {
-        console.error('Failed to remove consultation binding:', response);
-        throw new Error(`Failed to remove consultation binding, status code: ${response.statusCode}`);
-      }
-    })
-    .catch((error) => {
-      console.error('Error during the request to remove consultation binding:', error);
-      throw error;
-    });
+    
 }
 
 

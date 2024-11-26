@@ -48,7 +48,7 @@ export async function getLast30Messages(relationId) {
     }
   }
   // 封装发送消息请求的函数
-  export async function sendMessageApi(relationId, senderType = 'user', messageText, messageType = 'text', url = null) {
+  export async function sendMessageApi(relationId, senderType = 'user', messageText, messageType , url = null) {
     try {
       if (!relationId || !messageText) {
         throw new Error('缺少必要参数：relationId 或 messageText');
