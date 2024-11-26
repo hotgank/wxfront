@@ -64,13 +64,13 @@ export default {
     },
     async fetchDoctors() {
       try {
-        if (!this.doctors.length) {
+        //if (!this.doctors.length) {
           await this.loadDoctors(); // 加载医生数据
-        }
-        else
-        {
-          console.log('Doctors already loaded');
-        }
+        //}
+        //else
+        //{
+        //  console.log('Doctors already loaded');
+        //}
 
         
       } catch (error) {

@@ -11,7 +11,7 @@
         :class="{ 'generating': report.isGenerating }" @tap="viewReportDetails(report)">
         <view class="report-info">
           <text class="report-date">{{ report.date }}</text>
-          <text class="report-type">{{ report.reportType }}检测</text>
+          <text class="report-type">{{ report.reportType }}</text>
         </view>
         <view class="report-status-and-actions">
           <view v-if="report.isGenerating" class="generating-badge">
