@@ -6,7 +6,7 @@
         <text class="title">我的医生</text>
       </view>
       <view class="doctor-list">
-        <view v-for="doctor in doctors" :key="doctor.doctorId" class="doctor-card">
+        <view v-for="doctor in doctors" :key="doctor.doctorId" class="doctor-card" @tap=" navigateToChat(doctor)">
           <image :src="doctor.avatarUrl || '/static/doctor-avatars/default.jpg'" mode="aspectFill" class="doctor-avatar"
             @tap="navigateToDoctor(doctor)"></image>
           <view class="doctor-info">
