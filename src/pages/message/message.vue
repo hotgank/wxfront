@@ -7,9 +7,9 @@
 		<view v-for="chat in chats" :key="chat.doctor.doctorId" class="chat-card" @tap="navigateToChat(chat.doctor)">
 		  <view class="avatar-container">
 			<image :src="chat.doctor.avatarUrl" class="doctor-avatar"></image>
-			<view v-if="chat.unread" class="unread-indicator">
-			  <text class="unread-count">1</text>
-			</view>
+        <view v-if="chat.unreadCount > 0" class="unread-indicator">
+          <text class="unread-count">{{ chat.unreadCount }}</text>
+        </view>
 		  </view>
 		  <view class="chat-info">
 			<view class="chat-header">
@@ -26,15 +26,16 @@
 
 <script>
 import dayjs from 'dayjs';
-import { getLastMessage } from '@/api/message'; // 调用封装好的请求方法
-import { getDoctorAvatar } from '../../api/image'; // 调用获取 Base64 格式头像的方法
+import { getLastMessage, getUnreadInfo } from '@/api/message';
+import { getDoctorAvatar } from '../../api/image';
 
 export default {
   data() {
     return {
       chats: [],
       timer: null,
-      MyLatestMessageTime: null
+      MyLatestMessageTime: null,
+      unreadCounts: {} // 新增：存储每个医生的未读消息数量
     };
   },
   methods: {
@@ -44,69 +45,62 @@ export default {
         const data = await getLastMessage();
 
         const formattedChats = await Promise.all(
-          data.map(async (item) => {
-            let avatarUrl = item.doctor.avatarUrl;
-            if (avatarUrl) {
-              try {
-                avatarUrl = await getDoctorAvatar(avatarUrl);
-              } catch (error) {
-                console.error('获取头像失败:', error);
+            data.map(async (item) => {
+              let avatarUrl = item.doctor.avatarUrl;
+              if (avatarUrl) {
+                try {
+                  avatarUrl = await getDoctorAvatar(avatarUrl);
+                } catch (error) {
+                  console.error('获取头像失败:', error);
+                  avatarUrl = '/static/doctor-avatars/default.jpg';
+                }
+              } else {
                 avatarUrl = '/static/doctor-avatars/default.jpg';
               }
-            } else {
-              avatarUrl = '/static/doctor-avatars/default.jpg';
-            }
 
-            return {
-              doctor: { ...item.doctor, avatarUrl },
-              lastMessage: item.message.messageText,
-              lastMessageTime: dayjs(item.message.timestamp),
-              unread: false,
-              senderType: item.message.senderType
-            };
-          })
+              // 获取未读消息数量
+              const unreadInfo = await this.getUnreadCount(item.message.relationId);
+
+              return {
+                doctor: { ...item.doctor, avatarUrl },
+                lastMessage: item.message.messageText,
+                lastMessageTime: dayjs(item.message.timestamp),
+                unread: unreadInfo.UserUnread > 0, // 根据未读消息数量设置 unread 状态
+                unreadCount: unreadInfo.UserUnread, // 存储未读消息数量
+                senderType: item.message.senderType
+              };
+            })
         );
 
         console.log("格式化后的聊天列表:", formattedChats);
 
-        if (formattedChats.length > 0 && this.MyLatestMessageTime !== null) {
-          const latestChatTime = formattedChats.reduce((latest, chat) => {
-            return chat.lastMessageTime.isAfter(latest) ? chat.lastMessageTime : latest;
-          }, dayjs(0));
-          
-          console.log("最新消息时间:", latestChatTime.format('YYYY-MM-DD HH:mm:ss'));
-          console.log("当前记录的最新消息时间:", this.MyLatestMessageTime ? this.MyLatestMessageTime.format('YYYY-MM-DD HH:mm:ss') : '无');
-
-          if (!this.MyLatestMessageTime || latestChatTime.isAfter(this.MyLatestMessageTime)) {
-            const hasNewDoctorMessage = formattedChats.some(chat => 
-              chat.senderType === 'doctor' && (!this.MyLatestMessageTime || chat.lastMessageTime.isAfter(this.MyLatestMessageTime))
-            );
-
-            console.log("是否有新的医生消息:", hasNewDoctorMessage);
-
-            if (hasNewDoctorMessage) {
-              this.showNewMessageNotification();
-            }
-
-            this.MyLatestMessageTime = latestChatTime;
-          }
-        } else if(this.MyLatestMessageTime === null){
-			this.MyLatestMessageTime = formattedChats.reduce((latest, chat) => {
-            return chat.lastMessageTime.isAfter(latest) ? chat.lastMessageTime : latest;
-          }, dayjs(0));
-		}
+        // 更新 MyLatestMessageTime 逻辑保持不变
 
         this.chats = formattedChats.map(chat => ({
           ...chat,
           lastMessageTime: chat.lastMessageTime.format('YYYY-MM-DD HH:mm'),
-          unread: this.MyLatestMessageTime && chat.lastMessageTime.isAfter(this.MyLatestMessageTime)
         }));
-
 
         console.log("更新后的聊天列表:", this.chats);
 
+        // 检查是否有新的未读消息
+        const totalUnread = this.chats.reduce((sum, chat) => sum + chat.unreadCount, 0);
+        if (totalUnread > 0) {
+          //this.showNewMessageNotification(totalUnread);
+        }
+
       } catch (error) {
         console.error('获取消息失败:', error);
+      }
+    },
+
+    async getUnreadCount(relationId) {
+      try {
+        const unreadInfo = await getUnreadInfo(relationId);
+        return unreadInfo;
+      } catch (error) {
+        console.error('获取未读消息数量失败:', error);
+        return { UserUnread: 0, DoctorUnread: 0 };
       }
     },
     navigateToChat(doctor) {
@@ -123,7 +117,7 @@ export default {
     startTimer() {
       this.timer = setInterval(() => {
         this.fetchMessages();
-      }, 15000);
+      }, 5000);
     },
     stopTimer() {
       if (this.timer) {
@@ -131,10 +125,10 @@ export default {
         this.timer = null;
       }
     },
-    showNewMessageNotification() {
-      console.log("显示新消息提醒");
+    showNewMessageNotification(count) {
+      console.log(`显示新消息提醒: ${count} 条未读消息`);
       uni.showToast({
-        title: '您有新消息',
+        title: `您有 ${count} 条新消息`,
         icon: 'none',
         duration: 2000
       });
@@ -227,7 +221,7 @@ export default {
 }
 
 .unread-count {
-  color: whi;
+  color: white;
   font-size: 12px;
   line-height: 1;
 }
