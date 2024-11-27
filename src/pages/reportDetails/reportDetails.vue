@@ -27,7 +27,7 @@
       <view class="report-section">
         <text class="section-title">测评图片</text>
         <view class="image-gallery">
-          <image v-for="(image, index) in report.images" :key="index" :src="image" mode="aspectFit" class="report-image"
+          <image v-for="(image, index) in report.urls" :key="index" :src="image" mode="aspectFit" class="report-image"
             @tap="previewImage(index)"></image>
         </view>
       </view>
@@ -36,6 +36,7 @@
 </template>
 
 <script>
+import { getDoctorAvatar } from '@/api/image';
 export default {
   data() {
     return {
@@ -46,7 +47,8 @@ export default {
         result: '',
         analyse: '',
         doctorComment: '',
-        images: [] // 确保 images 是一个数组
+        images: [], // 确保 images 是一个数组
+        urls:[]
       }
     }
   },
@@ -61,6 +63,7 @@ export default {
           analyse: report.analyse || '',
           doctorComment: report.comment || '暂无医生留言',
           images: report.url ? [report.url] : [], // 确保为数组
+          urls: []
         };
       } catch (error) {
         console.error('解析传递参数失败:', error);
@@ -73,7 +76,7 @@ export default {
     try {
       const downloadedImages = await this.downloadImage(this.report.images);
       if (Array.isArray(downloadedImages)) {
-        this.report.images = downloadedImages;
+        this.report.urls = downloadedImages;
       } else {
         console.warn('下载的图片路径不是数组:', downloadedImages);
       }
@@ -84,28 +87,12 @@ export default {
 
   methods: {
     async downloadImage(urls) {
-      const token = uni.getStorageSync('token');
       const downloadedImages = [];
 
       for (const url of urls) {
         try {
-          const res = await new Promise((resolve, reject) => {
-            uni.downloadFile({
-              url: url,
-              header: {
-                'Authorization': `Bearer ${token}`,
-              },
-              success: resolve,
-              fail: reject
-            });
-          });
-
-          if (res.statusCode === 200) {
-            downloadedImages.push(res.tempFilePath);
-
-          } else {
-            console.warn('图片下载失败:', res.statusCode);
-          }
+          const res = await getDoctorAvatar(url);
+          downloadedImages.push(res);
         } catch (err) {
           console.error('图片下载失败:', err);
         }
@@ -115,10 +102,10 @@ export default {
     },
 
     previewImage(index) {
-      if (this.report.images && this.report.images.length > 0) {
+      if (this.report.urls && this.report.urls.length > 0) {
         uni.previewImage({
           current: index,
-          urls: this.report.images
+          urls: this.report.urls
         });
       } else {
         console.warn('图片列表为空，无法预览');
