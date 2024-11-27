@@ -1,23 +1,23 @@
 <template>
   <view class="container">
-    <image class="background-image" src="/static/icons/background-message.jpg" mode="aspectFill"></image>
-    <view class="content">
-      <view class="header">
-        <text class="title">我的医生</text>
-      </view>
-      <view class="doctor-list">
-        <view v-for="doctor in doctors" :key="doctor.doctorId" class="doctor-card" @tap=" navigateToChat(doctor)">
-          <image :src="doctor.avatarUrl || '/static/doctor-avatars/default.jpg'" mode="aspectFill" class="doctor-avatar"
-            @tap="navigateToDoctor(doctor)"></image>
-          <view class="doctor-info">
-            <text class="doctor-name">{{ doctor.name }}</text>
-            <text class="doctor-hospital">{{ doctor.workplace }}</text>
-            <text class="doctor-specialty">{{ doctor.experience ? doctor.experience : '小白' }}</text>
-          </view>
+    <view class="header">
+      <text class="title">我的医生</text>
+    </view>
+    <scroll-view class="doctor-list" scroll-y>
+      <view v-for="doctor in doctors" :key="doctor.doctorId" class="doctor-card" @tap="navigateToDoctor(doctor)">
+        <!-- Updated Doctor Card -->
+        <image :src="doctor.avatarUrl || '/static/doctor-avatars/default.jpg'" class="doctor-avatar" mode="aspectFill"></image>
+        <view class="doctor-info">
+          <text class="doctor-name">{{ doctor.name }}</text>
+          <text class="doctor-position">{{ doctor.position }}</text>
+          <text class="doctor-workplace">{{ doctor.workplace }}</text>
+        </view>
+        <view class="button-group">
+          <!-- Updated End Binding Button -->
           <button class="end-binding-button" @tap.stop="endBinding(doctor)">结束绑定</button>
         </view>
       </view>
-    </view>
+    </scroll-view>
   </view>
 </template>
 
@@ -103,32 +103,19 @@ export default {
 }
 </script>
 
-<style>
+
+<style scoped>
 .container {
-  position: relative;
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
-}
-
-.background-image {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  z-index: -1;
-}
-
-.content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: 20px;
+  background-color: #f8f8f8;
 }
 
 .header {
-  margin-bottom: 20px;
+  padding: 20px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e0e0e0;
 }
 
 .title {
@@ -139,22 +126,24 @@ export default {
 
 .doctor-list {
   flex: 1;
+  padding: 10px;
 }
 
 .doctor-card {
   display: flex;
-  background-color: rgba(255, 255, 255, 0.8);
-  border-radius: 10px;
-  padding: 15px;
-  margin-bottom: 15px;
+  flex-direction: row;
+  background-color: white;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .doctor-avatar {
-  width: 80px;
-  height: 80px;
-  border-radius: 40px;
-  margin-right: 15px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  margin-right: 10px;
 }
 
 .doctor-info {
@@ -165,31 +154,34 @@ export default {
 }
 
 .doctor-name {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: bold;
-  color: #333;
-  margin-bottom: 5px;
+  margin-bottom: 4px;
 }
 
-.doctor-hospital {
+.doctor-position,
+.doctor-workplace {
   font-size: 14px;
   color: #666;
-  margin-bottom: 5px;
 }
 
-.doctor-specialty {
-  font-size: 14px;
-  color: #666;
+.button-group {
+  display: flex;
+  align-items: center;
 }
 
 .end-binding-button {
-  padding: 5px 10px;
-  margin-top: 10px;
-  background-color: #f56c6c;
-  color: #fff;
+  padding: 6px 12px;
+  background-color: #ff4d4f; /* Matches the Rejected Button Style */
+  color: white;
+  border-radius: 4px;
   border: none;
-  border-radius: 5px;
-  font-size: 20px;
+  font-size: 14px;
+  font-weight: bold;
   cursor: pointer;
+}
+
+.end-binding-button:active {
+  background-color: #d9363e;
 }
 </style>

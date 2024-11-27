@@ -4,8 +4,17 @@
     <view class="content">
       <!-- 用户信息部分 -->
       <view class="user-info">
-        <image class="avatar" :src="userInfo.avatarUrl" mode="aspectFill"></image>
-        <text class="nickname">{{ userInfo.nickName }}</text>
+        <button class="avatar-button" @tap="onChooseAvatar">
+          <image class="avatar" :src="userInfo.avatarUrl" mode="aspectFill"></image>
+        </button>
+        <view>
+          <input
+            class="nickname-input"
+            v-model="userInfo.username"
+            @blur="saveNickname"
+            placeholder="请输入新的昵称"
+          />
+        </view>
       </view>
 
       <!-- 功能板块 -->
@@ -39,41 +48,104 @@
 </template>
 
 <script>
+import { getUserInfo, uploadUsername } from "@/api/user"; // 引用封装的请求方法
+import { uploadUserAvatar, getDoctorAvatar } from "@/api/image"; // 引用封装的图片方法
+
 export default {
   data() {
     return {
       userInfo: {
-        avatarUrl: '/static/my/default-avatar.jpg', // 默认头像
-        nickName: '微信用户' // 默认昵称
-      }
-    }
+        avatarUrl: "/static/my/default-avatar.jpg", // 默认头像
+        username: "微信用户", // 默认昵称
+      },
+    };
   },
-  onLoad() {
-    // 获取用户信息
-    this.getUserInfo()
+  async onLoad() {
+    try {
+      // 获取用户信息并更新页面
+      const userInfo = await getUserInfo();
+      if (userInfo.avatarUrl) {
+        try {
+          this.userInfo.avatarUrl = await getDoctorAvatar(userInfo.avatarUrl);
+        } catch (error) {
+          console.error("获取头像失败:", error);
+        }
+      }
+      this.userInfo.username = userInfo.username; // 更新昵称
+    } catch (error) {
+      console.error("获取用户信息失败:", error);
+      uni.showToast({
+        title: "获取用户信息失败",
+        icon: "none",
+      });
+    }
   },
   methods: {
-    getUserInfo() {
-      // 这里应该是获取微信用户信息的逻辑
-      // 由于微信小程序的限制，这里只是一个示例
-      // 实际使用时需要根据微信小程序的授权流程来获取用户信息
-      // 以下是示例代码，实际使用时需要替换为真实的获取用户信息的逻辑
-      uni.getUserInfo({
-        success: (res) => {
-          this.userInfo = res.userInfo
-        },
-        fail: (err) => {
-          console.error('获取用户信息失败', err)
+    async onChooseAvatar() {
+      try {
+        const chooseImageResult = await uni.chooseImage({
+          count: 1, // 限制只能选择一张图片
+          sizeType: ["compressed"], // 压缩图
+          sourceType: ["album", "camera"], // 从相册或拍摄获取
+        });
+
+        if (chooseImageResult.tempFilePaths && chooseImageResult.tempFilePaths[0]) {
+          const avatarPath = chooseImageResult.tempFilePaths[0];
+
+          // 上传头像并获取成功提示
+          const successMessage = await uploadUserAvatar(avatarPath);
+          uni.showToast({
+            title: "成功上传头像",
+            icon: "success",
+          });
+
+          // 更新用户信息
+          const userInfo = await getUserInfo();
+          this.userInfo = userInfo;
+          this.userInfo.avatarUrl = avatarPath;
+        } else {
+          throw new Error("未选择图片");
         }
-      })
+      } catch (error) {
+        console.log("上传头像失败:", error);
+      }
     },
+
+    async saveNickname() {
+      if (!this.userInfo.username.trim()) {
+        uni.showToast({
+          title: "昵称不能为空",
+          icon: "none",
+        });
+        return;
+      }
+
+      try {
+        // 调用封装的接口，传入 JSON 数据
+        const response = await uploadUsername(
+           this.userInfo.username.trim(),
+        );
+
+        uni.showToast({
+          title: "成功更新昵称",
+          icon: "success",
+        });
+      } catch (error) {
+        console.error("更新昵称失败:", error);
+        uni.showToast({
+          title: "更新昵称失败，请稍后重试",
+          icon: "none",
+        });
+      }
+    },
+
     navigateTo(page) {
       uni.navigateTo({
-        url: `/pages/my/${page}/${page}`
-      })
-    }
-  }
-}
+        url: `/pages/my/${page}/${page}`,
+      });
+    },
+  },
+};
 </script>
 
 <style>
@@ -117,12 +189,17 @@ export default {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.nickname {
+.nickname-input {
   margin-top: 10px;
   font-size: 18px;
   font-weight: bold;
   color: #333;
   text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+  border: none;
+  background: transparent;
+  border-bottom: 1px solid #ccc;
+  text-align: center;
+  outline: none;
 }
 
 .function-blocks {
@@ -160,5 +237,11 @@ export default {
   color: #333;
   font-weight: bold;
   text-align: center;
+}
+
+.avatar-button {
+  border: none;
+  background: transparent;
+  padding: 0;
 }
 </style>
