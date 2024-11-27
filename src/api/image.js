@@ -34,6 +34,33 @@ export function uploadChatImageApi(filePath, relationId) {
   });
 }
 
+export async function uploadUserAvatar(avatarPath) {
+  if (!avatarPath) {
+    throw new Error('Avatar path is required');
+  }
+
+  try {
+    const response = await uni.uploadFile({
+      url: `${BASE_URL}/api/image/uploadUserAvatar`, // 替换为后端接口地址
+      filePath: avatarPath,
+      name: 'file',
+      header: {
+        'Content-Type': 'multipart/form-data',
+        Authorization: 'Bearer ' + uni.getStorageSync('token'), // 如果需要 token，可以从本地存储中获取
+      },
+    });
+
+    const resData = JSON.parse(response.data);
+    if (response.statusCode === 200) {
+      return resData.message; // 返回成功消息
+    } else {
+      throw new Error(resData.message || '上传失败');
+    }
+  } catch (error) {
+    console.error('上传头像失败:', error);
+    throw new Error(error.message || '上传头像失败');
+  }
+}
 export const uploadImage = async (filePath) => {
   try {
     const token = uni.getStorageSync('token'); // 获取 token

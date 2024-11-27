@@ -5,7 +5,19 @@ import { selectRelationIdByDoctorId } from '@/api/relation';
 import { getDoctorAvatar } from '@/api/image'; // 引入封装好的头像请求函数
 import { getLastMessage } from './message';
 import { getMessagesBefore } from '@/api/message';
+import { getUserInfo } from '@/api/user';
 
+async function testGetUserDetails() {
+  try{
+    const User=await getUserInfo();
+    console.log("获取用户成功",User);
+
+  }
+  catch(error){
+    console.error('测试失败:', error);
+  }
+}
+// testGetUserDetails();
 async function testGetMessagesBefore() {
   const testRelationId = '5'; // 测试用 relationId
   const testMessageSeq = 10; // 测试用 messageSeq
@@ -31,7 +43,7 @@ async function testGetMessagesBefore() {
 }
 
 // 调用测试函数
-testGetMessagesBefore();
+// testGetMessagesBefore();
 // 测试医生头像请求函数
 const testGetDoctorAvatar = async () => {
   const avatarUrl = 'http://localhost:8080/doctor_avatars/D-d45b4b41-6465-437c-a8e6-8676f9e9a7d1.jpg';
