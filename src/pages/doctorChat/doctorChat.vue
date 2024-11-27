@@ -28,7 +28,13 @@
 
 <script>
 import { selectRelationIdByDoctorId } from '@/api/relation';
-import { getLast30Messages, getMessagesBefore, getMessagesAfter, sendMessageApi } from '@/api/message';
+import {
+  getLast30Messages,
+  getMessagesBefore,
+  getMessagesAfter,
+  sendMessageApi,
+  updateReadInfo
+} from '@/api/message';
 import { getDoctorAvatar, uploadChatImageApi } from '@/api/image';
 
 export default {
@@ -90,7 +96,15 @@ export default {
         this.messageSeqAfter = this.messages[this.messages.length - 1]?.messageSeq || null;
 
         console.log('messageSeqBefore:', this.messageSeqBefore, 'messageSeqAfter:', this.messageSeqAfter);
-
+        // 在成功加载最新消息后，更新已读消息序列号
+        if (this.messageSeqAfter) {
+          try {
+            await updateReadInfo(this.relationId, this.messageSeqAfter);
+            console.log('已更新已读消息序列号:', this.messageSeqAfter);
+          } catch (error) {
+            console.error('更新已读消息序列号失败:', error);
+          }
+        }
         this.scrollToBottom();
       } catch (error) {
         console.error('加载消息失败:', error);
@@ -276,6 +290,15 @@ export default {
 
         this.messageSeqAfter = this.messages[this.messages.length - 1]?.messageSeq || this.messageSeqAfter;
         console.log('加载最新消息成功');
+        // 在成功加载最新消息后，更新已读消息序列号
+        if (this.messageSeqAfter) {
+          try {
+            await updateReadInfo(this.relationId, this.messageSeqAfter);
+            console.log('已更新已读消息序列号:', this.messageSeqAfter);
+          } catch (error) {
+            console.error('更新已读消息序列号失败:', error);
+          }
+        }
       } catch (error) {
         console.error('加载最新消息失败:', error);
       } finally {

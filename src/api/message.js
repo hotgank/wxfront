@@ -115,3 +115,87 @@ export function getLastMessage() {
       throw err;
     });
 }
+
+/**
+ * 更新Redis中的已读消息序列号
+ * @param {number} relationId - 关系ID
+ * @param {number} readSeq - 已读消息的序列号
+ * @returns {Promise<string>} - 返回包含更新结果的 Promise
+ */
+export async function updateReadInfo(relationId, readSeq) {
+  if (!relationId || typeof readSeq !== 'number') {
+    throw new Error('relationId 和 readSeq 是必传参数，且 readSeq 必须为数字');
+  }
+
+  try {
+    const [error, data] = await request({
+      url: '/api/messages/updateReadInfo',
+      method: 'POST',
+      data: {
+        relationId,
+        ReadSeq: readSeq
+      }
+    });
+
+    if (error) {
+      console.error('更新已读消息序列号失败:', error);
+      throw error;
+    }
+
+    return data;
+  } catch (err) {
+    console.error('请求过程中出现错误:', err);
+    throw err;
+  }
+}
+
+/**
+ * 获取未读消息信息数量
+ * @param {number} relationId - 关系ID
+ * @returns {Promise<{DoctorUnread: number, UserUnread: number}>} - 返回包含未读消息信息的 Promise
+ */
+export async function getUnreadInfo(relationId) {
+  if (!relationId || typeof relationId !== 'number') {
+    throw new Error('relationId 是必传参数，且必须为数字');
+  }
+
+  try {
+    const [error, data] = await request({
+      url: '/api/messages/getUnReadInfo',
+      method: 'POST',
+      data: {
+        relationId
+      }
+    });
+
+    if (error) {
+      console.error('获取未读消息信息失败:', error);
+      throw error;
+    }
+
+    // 确保返回的数据符合预期格式
+    if (typeof data === 'string') {
+      try {
+        const parsedData = JSON.parse(data);
+        if ('DoctorUnread' in parsedData && 'UserUnread' in parsedData) {
+          return {
+            DoctorUnread: Number(parsedData.DoctorUnread),
+            UserUnread: Number(parsedData.UserUnread)
+          };
+        }
+      } catch (parseError) {
+        console.error('解析返回数据失败:', parseError);
+      }
+    } else if (typeof data === 'object' && 'DoctorUnread' in data && 'UserUnread' in data) {
+      return {
+        DoctorUnread: Number(data.DoctorUnread),
+        UserUnread: Number(data.UserUnread)
+      };
+    }
+
+    throw new Error('服务器返回的数据格式不正确');
+  } catch (err) {
+    console.error('请求过程中出现错误:', err);
+    throw err;
+  }
+}
