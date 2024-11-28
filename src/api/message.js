@@ -69,6 +69,7 @@ export async function getLast30Messages(relationId) {
         method: 'POST',
         data: requestBody,
       });
+      return response;
   
       // 适配返回结果，提取数组中的消息对象
     } catch (error) {

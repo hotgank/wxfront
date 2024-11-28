@@ -10,8 +10,8 @@
         :class="{ 'self-message': message.isSelf }">
         <image v-if="!message.isSelf" :src="doctor.avatarUrl" class="avatar"></image>
         <view class="message-content" :class="{ 'self-content': message.isSelf }">
-          <image v-if="message.type === 'image'" :src="message.localUrl || message.url" mode="widthFix" class="message-image"
-            alt="Message image"></image>
+          <image v-if="message.type === 'image'" :src="message.localUrl || message.url" mode="widthFix"
+            class="message-image" alt="Message image"></image>
           <text v-else class="message-text">{{ message.content }}</text>
         </view>
         <image v-if="message.isSelf" :src="userAvatar" class="avatar"></image>
@@ -214,7 +214,9 @@ export default {
         content: this.inputMessage,
         isSelf: true,
         type: 'text',
+        messageSeq: this.messageSeqAfter + 1 || 1, // 假设从1开始递增
       };
+
       this.messages.push(newMessage);
       this.inputMessage = '';
 
@@ -223,16 +225,32 @@ export default {
       });
 
       try {
-        await sendMessageApi(this.relationId, 'user', newMessage.content);
-        console.log('消息发送成功:', newMessage.content);
+        const response = await sendMessageApi(this.relationId, 'user', newMessage.content);
+
+        // 更新最新的消息序列号
+        this.messageSeqAfter = newMessage.messageSeq;
+        console.log('消息发送成功，更新消息序列号:', this.messageSeqAfter);
+
+        // 可能需要后端返回一个确认的序列号，确保一致性
+        if (response && response.messageSeq) {
+          this.messageSeqAfter = response.messageSeq;
+          console.log('消息发送成功，后端返回的消息序列号:', response.messageSeq);
+        }
       } catch (error) {
         console.error('发送消息失败:', error);
         uni.showToast({
           title: '消息发送失败，请稍后重试',
           icon: 'none',
         });
+
+        // 失败后移除临时消息
+        const index = this.messages.indexOf(newMessage);
+        if (index !== -1) {
+          this.messages.splice(index, 1);
+        }
       }
     },
+
 
     // 加载更多历史消息
     async loadMoreMessages() {
@@ -283,21 +301,33 @@ export default {
           return;
         }
 
+        // 处理消息数据
         const processedMessages = await this.processMessages(latestMessages[1]);
-        this.messages = this.messages.concat(
-          processedMessages.sort((a, b) => a.messageSeq - b.messageSeq)
+
+        // 过滤掉已加载的消息
+        const newMessages = processedMessages.filter(
+          (msg) => msg.messageSeq > this.messageSeqAfter
         );
 
-        this.messageSeqAfter = this.messages[this.messages.length - 1]?.messageSeq || this.messageSeqAfter;
-        console.log('加载最新消息成功');
-        // 在成功加载最新消息后，更新已读消息序列号
-        if (this.messageSeqAfter) {
-          try {
-            await updateReadInfo(this.relationId, this.messageSeqAfter);
-            console.log('已更新已读消息序列号:', this.messageSeqAfter);
-          } catch (error) {
-            console.error('更新已读消息序列号失败:', error);
+        if (newMessages.length > 0) {
+          this.messages = this.messages.concat(
+            newMessages.sort((a, b) => a.messageSeq - b.messageSeq)
+          );
+
+          this.messageSeqAfter = this.messages[this.messages.length - 1]?.messageSeq || this.messageSeqAfter;
+          console.log('加载最新消息成功');
+
+          // 更新已读消息序列号
+          if (this.messageSeqAfter) {
+            try {
+              await updateReadInfo(this.relationId, this.messageSeqAfter);
+              console.log('已更新已读消息序列号:', this.messageSeqAfter);
+            } catch (error) {
+              console.error('更新已读消息序列号失败:', error);
+            }
           }
+        } else {
+          console.log('没有新的消息需要添加');
         }
       } catch (error) {
         console.error('加载最新消息失败:', error);

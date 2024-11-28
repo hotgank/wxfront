@@ -4,9 +4,9 @@
       <text class="title">我的医生</text>
     </view>
     <scroll-view class="doctor-list" scroll-y>
-      <view v-for="doctor in doctors" :key="doctor.doctorId" class="doctor-card" @tap="navigateToDoctor(doctor)">
+      <view v-for="doctor in doctors" :key="doctor.doctorId" class="doctor-card" @tap="navigateToChat(doctor)">
         <!-- Updated Doctor Card -->
-        <image :src="doctor.avatarUrl || '/static/doctor-avatars/default.jpg'" class="doctor-avatar" mode="aspectFill"></image>
+        <image :src="doctor.avatarUrl || '/static/doctor-avatars/default.jpg'" class="doctor-avatar" mode="aspectFill" @tap="navigateToDoctor(doctor)"></image>
         <view class="doctor-info">
           <text class="doctor-name">{{ doctor.name }}</text>
           <text class="doctor-position">{{ doctor.position }}</text>
