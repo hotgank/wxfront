@@ -1,8 +1,28 @@
 <template>
   <div class="container">
     <h1 class="page-title">科普文章</h1>
+    <!-- 添加搜索框 -->
+    <div class="search-container">
+    <div class="search-box">
+      <!-- 修改搜索图标 SVG -->
+      <image src="/static/icons/search.png" class="search-icon" />
+      <input 
+        type="text" 
+        v-model="searchQuery" 
+        placeholder="搜索文章标题..." 
+        class="search-input"
+      >
+      <div 
+        v-if="searchQuery" 
+        class="clear-button"
+        @click="clearSearch"
+      >
+        ✕
+      </div>
+    </div>
+  </div>
     <div class="article-grid">
-      <div v-for="article in healthArticles" :key="article.articleId" class="article-card"
+      <div v-for="article in filteredArticles" :key="article.articleId" class="article-card"
         @tap="goToArticleDetail(article.articleId)">
         <div class="article-header">
           <img
@@ -32,16 +52,39 @@
         </div>
       </div>
     </div>
+    <!-- 无搜索结果提示 -->
+    <div v-if="filteredArticles.length === 0" class="no-results">
+      <svg class="no-results-icon" viewBox="0 0 24 24">
+        <path d="M9.172 16.242 12 13.414l2.828 2.828 1.414-1.414L13.414 12l2.828-2.828-1.414-1.414L12 10.586 9.172 7.758 7.758 9.172 10.586 12l-2.828 2.828z"/>
+        <path d="M12 22c5.514 0 10-4.486 10-10S17.514 2 12 2 2 6.486 2 12s4.486 10 10 10zm0-18c4.411 0 8 3.589 8 8s-3.589 8-8 8-8-3.589-8-8 3.589-8 8-8z"/>
+      </svg>
+      <p>未找到相关文章</p>
+    </div>
   </div>
 </template>
+
 
 
 <script>
 import { mapState, mapActions } from 'vuex';
 
 export default {
+  data() {
+    return {
+      searchQuery: '',
+    }
+  },
   computed: {
     ...mapState(['healthArticles', 'articleDoctors']),
+    filteredArticles() {
+      if (!this.searchQuery) {
+        return this.healthArticles;
+      }
+      const query = this.searchQuery.toLowerCase().trim();
+      return this.healthArticles.filter(article => 
+        article.title.toLowerCase().includes(query)
+      );
+    }
   },
   methods: {
     ...mapActions(['loadHealthArticles', 'loadDoctorInfo']),
@@ -50,13 +93,13 @@ export default {
         url: `/pages/index/articles/articleDetails/articleDetails?id=${articleId}`,
       });
     },
+    clearSearch() {
+      this.searchQuery = '';
+    }
   },
   async onLoad() {
     try {
-      // 加载文章列表
       await this.loadHealthArticles();
-
-      // 加载每篇文章的医生信息
       await this.loadDoctorInfo();
     } catch (error) {
       console.error('加载文章或医生信息失败:', error);
@@ -182,6 +225,81 @@ height: 3px;
 background-color: #0066cc;
 margin: 10px auto 0;
 }
+.search-container {
+  margin-bottom: 30px;
+  display: flex;
+  justify-content: center;
+}
+
+.search-box {
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 12px 16px;
+  transition: all 0.3s ease;
+}
+
+.search-box:focus-within {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.search-icon {
+  width: 20px;
+  height: 20px;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 16px;
+  color: #333;
+  background: transparent;
+  padding: 0;
+}
+
+.search-input::placeholder {
+  color: #999;
+}
+
+.clear-button {
+  cursor: pointer;
+  padding: 4px 8px;
+  color: #999;
+  font-size: 14px;
+  transition: color 0.3s ease;
+}
+
+.clear-button:hover {
+  color: #666;
+}
+
+/* 无搜索结果样式 */
+.no-results {
+  text-align: center;
+  padding: 40px 0;
+  color: #666;
+}
+
+.no-results-icon {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 16px;
+  fill: #999;
+}
+
+.no-results p {
+  font-size: 16px;
+  color: #666;
+}
+
 
 @media (max-width: 768px) {
 .article-grid {

@@ -1,10 +1,24 @@
 <template>
   <view class="container">
     <view class="header">
-      <text class="title">咨询医生</text>
+      <view class="header-content">
+        <text class="title">咨询医生</text>
+        <view class="filter-container">
+          <picker 
+            :range="hospitalList" 
+            @change="onHospitalChange" 
+            class="hospital-picker"
+          >
+            <view class="picker-wrapper">
+              <text class="picker-text">{{ selectedHospital || '选择医院' }}</text>
+              <text class="picker-icon">▼</text>
+            </view>
+          </picker>
+        </view>
+      </view>
     </view>
     <scroll-view class="doctor-list" scroll-y="true">
-      <view v-for="(doctor) in doctors" :key="doctor.doctorId" class="doctor-card">
+      <view v-for="doctor in filteredDoctors" :key="doctor.doctorId" class="doctor-card">
         <image :src="doctor.avatarUrl || '/static/doctor-avatars/default.jpg'" mode="aspectFill" class="doctor-avatar"
           @tap="viewDoctorProfile(doctor)"></image>
         <view class="doctor-info">
@@ -26,12 +40,33 @@ import { mapState, mapActions } from 'vuex';
 import { bindDoctorPatientRelation } from '@/api/relation.js';
 
 export default {
+  data() {
+    return {
+      selectedHospital: '',
+    }
+  },
   computed: {
-    ...mapState(['doctors']) // 使用 Vuex 的 state
+    ...mapState(['doctors']),
+    hospitalList() {
+      // Get unique hospital names from doctors array
+      const hospitals = new Set(this.doctors.map(doctor => doctor.workplace || '未知医院'));
+      return ['全部医院', ...Array.from(hospitals)];
+    },
+    filteredDoctors() {
+      if (!this.selectedHospital || this.selectedHospital === '全部医院') {
+        return this.doctors;
+      }
+      return this.doctors.filter(doctor => 
+        (doctor.workplace || '未知医院') === this.selectedHospital
+      );
+    }
   },
   methods: {
-    ...mapActions(['loadDoctors']), // 使用 Vuex 的 actions
-
+    ...mapActions(['loadDoctors']),
+    onHospitalChange(e) {
+      const index = e.detail.value;
+      this.selectedHospital = this.hospitalList[index];
+    },
     getButtonClass(situation) {
       switch (situation) {
         case 'rejected': return 'rejected-button';
@@ -64,15 +99,7 @@ export default {
     },
     async fetchDoctors() {
       try {
-        //if (!this.doctors.length) {
           await this.loadDoctors(); // 加载医生数据
-        //}
-        //else
-        //{
-        //  console.log('Doctors already loaded');
-        //}
-
-        
       } catch (error) {
         uni.showToast({
           title: '加载医生信息失败',
@@ -80,17 +107,14 @@ export default {
         });
       }
     },
-
     viewDoctorProfile(doctor) {
       uni.navigateTo({
         url: `/pages/doctorProfile/doctorProfile?doctor=${encodeURIComponent(JSON.stringify(doctor))}`,
       });
     },
-
     async applyDoctor(doctorId) {
       try {
         await bindDoctorPatientRelation(doctorId);
-        // Update the doctor's situation in the local state
         const doctorIndex = this.doctors.findIndex(d => d.doctorId === doctorId);
         if (doctorIndex !== -1) {
           this.$set(this.doctors[doctorIndex], 'situation', 'pending');
@@ -108,12 +132,12 @@ export default {
       }
     },
   },
-
   async mounted() {
     await this.fetchDoctors(); // 在组件加载时获取医生数据
   }
 };
 </script>
+
 <style>
 .container {
   display: flex;
@@ -133,6 +157,7 @@ export default {
   font-weight: bold;
   color: #333;
 }
+
 
 .doctor-list {
   flex: 1;
@@ -203,6 +228,49 @@ export default {
 .pending-button {
   background-color: #ffcc00;
   color: #ffffff;
+}
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 5px;
+}
+
+.filter-container {
+  position: relative;
+}
+
+.hospital-picker {
+  min-width: 130px;
+}
+
+.picker-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 8px 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.picker-wrapper:active {
+  background-color: #f8f8f8;
+  transform: translateY(1px);
+}
+
+.picker-text {
+  font-size: 14px;
+  color: #333;
+  margin-right: 8px;
+}
+
+.picker-icon {
+  font-size: 12px;
+  color: #666;
+  transition: transform 0.3s ease;
 }
 
 .apply-button,
