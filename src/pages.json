@@ -107,12 +107,6 @@
 			"style": {
 				"navigationBarTitleText": "文章详情"
 			}
-		},
-		{
-			"path": "pages/index/aiBodyCheck/spineCheck",
-			"style": {
-				"navigationBarTitleText": "脊柱异位检测"
-			}
 		}
 	],
 	"tabBar": {

@@ -1,13 +1,15 @@
 import request from '@/utils/request.js';
 
-export const aiDetect = async (childId, imageUrl) => {
+export const aiDetect = async (childId, imageUrl,type) => {
   try {
     const response = await request({
       url: '/api/ai/detect',
       method: 'POST',
       data: {
         childId: childId,
-        imageUrl: imageUrl
+        imageUrl: imageUrl,
+        type:type
+        
       }
     });
     console.log('AI检测上传成功');

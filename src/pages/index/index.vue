@@ -6,17 +6,17 @@
       <view class="section evaluation">
         <view class="section-title">测评功能</view>
         <view class="feature-list">
-          <view class="feature-item" @click="navigateToC('spineCheck')">
-            <image src="/static/icons/spine-check.jpg" mode="aspectFit" class="feature-icon"></image>
-            <text>脊柱健康检测</text>
+          <view class="feature-item" @click="navigateToC('spinal_deviation')">
+            <image src="/static/icons/spine-check.png" mode="aspectFit" class="feature-icon"></image>
+            <text>脊柱异位检测</text>
           </view>
-          <view class="feature-item" @click="navigateTo('aiBodyCheck')">
-            <image src="/static/icons/body-check.jpg" mode="aspectFit" class="feature-icon"></image>
-            <text>AI全面体态检测</text>
+          <view class="feature-item" @click="navigateToC('uneven_shoulders')">
+            <image src="/static/icons/uneven_shoulders.png" mode="aspectFit" class="feature-icon"></image>
+            <text>高低肩检测</text>
           </view>
-          <view class="feature-item" @click="navigateTo('cobbAngle')">
-            <image src="/static/icons/cobb-angle.jpg" mode="aspectFit" class="feature-icon"></image>
-            <text>Cobb角测量</text>
+          <view class="feature-item" @click="navigateToC('pelvic_tilt')">
+            <image src="/static/icons/pelvic_tilt.png" mode="aspectFit" class="feature-icon"></image>
+            <text>骨盆侧倾检测</text>
           </view>
         </view>
       </view>
@@ -78,7 +78,7 @@ export default {
     },
     navigateToC(page) {
       uni.navigateTo({
-        url: `/pages/index/aiBodyCheck/${page}`
+        url: `/pages/index/aiBodyCheck/aiBodyCheck?type=${page}`
       });
     }
   }

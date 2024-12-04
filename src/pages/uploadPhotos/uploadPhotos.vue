@@ -72,7 +72,7 @@ export default {
 
           // Call the AI detection API with the first uploaded image URL
           const imageUrl = uploadedUrls[0]; // Assuming you want to use the first uploaded photo
-          const aiResult = aiDetect(this.childId, imageUrl);
+          const aiResult = aiDetect(this.childId, imageUrl,this.detectionType);
 
           console.log('AI检测结果:', aiResult);
 
