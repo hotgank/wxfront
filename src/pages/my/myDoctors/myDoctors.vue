@@ -6,7 +6,7 @@
     <scroll-view class="doctor-list" scroll-y>
       <view v-for="doctor in doctors" :key="doctor.doctorId" class="doctor-card" @tap="navigateToChat(doctor)">
         <!-- Updated Doctor Card -->
-        <image :src="doctor.avatarUrl || '/static/doctor-avatars/default.jpg'" class="doctor-avatar" mode="aspectFill" @tap="navigateToDoctor(doctor)"></image>
+        <image :src="doctor.avatarUrl || '/static/doctor-avatars/default.jpg'" class="doctor-avatar" mode="aspectFill" @tap.stop="navigateToDoctor(doctor)"></image>
         <view class="doctor-info">
           <text class="doctor-name">{{ doctor.name }}</text>
           <text class="doctor-position">{{ doctor.position }}</text>
@@ -25,7 +25,7 @@
 <script>
 import { getMyDoctors } from '@/api/doctor'
 import { getDoctorAvatar } from '@/api/image'
-import { removeConsultationBinding } from '@/api/relation'
+import { removeConsultationBinding,marking } from '@/api/relation'
 export default {
   data() {
     return {
@@ -63,32 +63,60 @@ export default {
       }
     },
     async endBinding(doctor) {
-      try {
-        const confirmation = await uni.showModal({
-          title: '确认操作',
-          content: `确定要解除与 ${doctor.name} 的绑定吗？`,
-          confirmText: '确定',
-          cancelText: '取消',
-        });
+  try {
+    const confirmation = await uni.showModal({
+      title: '确认操作',
+      content: `确定要解除与 ${doctor.name} 的绑定吗？`,
+      confirmText: '确定',
+      cancelText: '取消',
+    });
 
-        if (confirmation.confirm) {
-          await removeConsultationBinding(doctor.doctorId); // Call API
+    if (confirmation.confirm) {
+      // 结束绑定
+      await removeConsultationBinding(doctor.doctorId);
+      uni.showToast({
+        title: '解除绑定成功',
+        icon: 'success',
+      });
+
+      // 从列表中移除医生
+      this.doctors = this.doctors.filter((d) => d.doctorId !== doctor.doctorId);
+
+      // 结束绑定后，弹出打分界面
+      const ratingModal = await uni.showModal({
+        title: '为医生评分',
+        content: '',
+        editable: true, // 启用编辑模式，用户可以输入评分
+        placeholderText: '请输入评分 (1-5)',
+        confirmText: '提交',
+        cancelText: '取消',
+      });
+
+      if (ratingModal.confirm) {
+        const rating = parseInt(ratingModal.content);
+        if (rating >= 1 && rating <= 5) {
+          // 调用评分 API
+          await marking(doctor.doctorId, rating);
           uni.showToast({
-            title: '解除绑定成功',
+            title: '感谢您的评分',
             icon: 'success',
           });
-
-          // Remove doctor from the list
-          this.doctors = this.doctors.filter((d) => d.doctorId !== doctor.doctorId);
+        } else {
+          uni.showToast({
+            title: '评分无效，请输入 1-5 的分数',
+            icon: 'none',
+          });
         }
-      } catch (error) {
-        uni.showToast({
-          title: '解除绑定失败，请稍后重试',
-          icon: 'none',
-        });
-        console.error('解除绑定失败:', error);
       }
-    },
+    }
+  } catch (error) {
+    uni.showToast({
+      title: '解除绑定或评分失败，请稍后重试',
+      icon: 'none',
+    });
+    console.error('解除绑定或评分失败:', error);
+  }
+},
     navigateToChat(doctor) {
       uni.navigateTo({
         url: `/pages/doctorChat/doctorChat?doctor=${encodeURIComponent(JSON.stringify(doctor))}`,

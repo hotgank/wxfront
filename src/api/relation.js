@@ -69,6 +69,22 @@ export function removeConsultationBinding(doctorId) {
   })
     
 }
+export function marking(doctorId ,rating) {
+  if (!doctorId || !rating ) {
+    return Promise.reject(new Error('doctorId or rating is required parameters'));
+  }
+
+  return request({
+    url: '/api/doctorConsultation/add',
+    method: 'POST',
+    data: {
+      doctorId,
+      rating
+    },
+  })
+    
+}
+
 
 
 
