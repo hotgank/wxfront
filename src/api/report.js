@@ -14,6 +14,22 @@ export function deleteReport(reportId) {
         throw error;
       });
   }
+  export function allowReport(reportId)
+  {
+    return request({
+      url: '/api/userReport/allowReport',
+      method: 'POST',
+      data: { reportId },
+    })
+      .then(response => {
+        console.log('授权报告成功', response);
+        return response;
+      })
+      .catch(error => {
+        console.error('授权报告失败', error);
+        throw error;
+      });
+  }
   export const fetchChildReport = async (childId) => {
     try {
       const [error, response] = await request({

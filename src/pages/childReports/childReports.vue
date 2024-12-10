@@ -14,6 +14,13 @@
           <text class="report-type">{{ report.reportType }}</text>
         </view>
         <view class="report-status-and-actions">
+          <button v-if="report.allowState !== 'allow'" class="action-button auth-button"
+            @tap.stop="authorizeReport(report.reportId)">
+            授权
+          </button>
+          <view v-else class="allow-status">
+            <text class="status-text">已授权</text>
+          </view>
           <view v-if="report.isGenerating" class="generating-badge">
             <text class="generating-text">生成中</text>
           </view>
@@ -33,7 +40,7 @@
 
 <script>
 import { getChildDetails } from '@/api/child.js';
-import { fetchChildReport, deleteReport } from '@/api/report.js';
+import { fetchChildReport, deleteReport, allowReport } from '@/api/report.js';
 
 export default {
   data() {
@@ -55,6 +62,25 @@ export default {
     this.loadReports();
   },
   methods: {
+    async authorizeReport(reportId) {
+      try {
+        await allowReport(reportId);
+        const reportIndex = this.reports.findIndex(r => r.reportId === reportId);
+        if (reportIndex !== -1) {
+          this.$set(this.reports[reportIndex], 'allowState', 'allow');
+        }
+        uni.showToast({
+          title: '授权成功',
+          icon: 'success'
+        });
+      } catch (error) {
+        console.error('授权失败:', error);
+        uni.showToast({
+          title: '授权失败',
+          icon: 'none'
+        });
+      }
+    },
     async confirmDeleteReport(reportId) {
       // 显示弹出框
       uni.showModal({
@@ -103,7 +129,8 @@ export default {
             result: report.result,
             url: report.url,
             comment: report.comment,
-            doctorId: report.doctorId
+            doctorId: report.doctorId,
+            allowState: report.allowState,
           };
         });
       } catch (error) {
@@ -160,6 +187,14 @@ export default {
 </script>
 
 <style>
+.auth-button {
+  background-color: #52c41a;
+  padding: 5px 10px;
+  border-radius: 15px;
+  margin-right: 10px;
+  color: #ffffff;
+}
+
 .container {
   display: flex;
   flex-direction: column;
@@ -233,6 +268,7 @@ export default {
 }
 
 .generating-badge,
+.allow-status,
 .report-status {
   padding: 5px 10px;
   border-radius: 15px;
@@ -245,6 +281,10 @@ export default {
 
 .report-status {
   background-color: #4cd964;
+}
+
+.allow-status {
+  background-color: #333
 }
 
 .generating-text,
@@ -270,4 +310,5 @@ export default {
   background-color: #ff3b30;
   color: #ffffff;
 }
+
 </style>
