@@ -88,11 +88,17 @@ export default {
         uni.navigateTo({
           url: `/pages/doctorChat/doctorChat?doctor=${encodeURIComponent(JSON.stringify(doctor))}`
         });
-      } else if (doctor.situation === 'rejected' || doctor.situation === 'pending') {
+      } else if (doctor.situation === 'pending') {
         uni.showToast({
           title: '您已经申请过该医生',
           icon: 'none'
         });
+      } else if (doctor.situation === 'rejected') {
+        uni.showToast({
+          title: '重新申请该医生',
+          icon: 'none'
+        });
+        this.applyDoctor(doctor.doctorId);
       } else {
         this.applyDoctor(doctor.doctorId);
       }
