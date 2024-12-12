@@ -56,6 +56,8 @@ export default {
                 ? '申请中'
                 : item.relationStatus === 'approved'
                   ? '已通过'
+                  : item.relationStatus === 'removeBinding'
+                  ? '已解除绑定'
                   : '已拒绝',
             position: item.doctor.position || '未知职位',
             experience: item.doctor.experience ,
@@ -87,6 +89,8 @@ export default {
           return 'status-pending';
         case '已通过':
           return 'status-approved';
+        case '已解除绑定':
+          return 'status-unbind';
         case '已拒绝':
           return 'status-rejected';
         default:
@@ -164,6 +168,11 @@ export default {
 .status-pending {
   background-color: #ffd700;
   color: #8b6914;
+}
+
+.status-unbind {
+  background-color: #007aff;
+  color: #ffffff;
 }
 
 .status-approved {
