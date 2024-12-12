@@ -10,6 +10,13 @@
           <text class="record-name">{{ record.childName }}</text>
           <text class="record-type">{{ record.reportType }}</text>
         </view>
+        <button v-if="record.allowState !== 'allow'" class="action-button auth-button"
+            @tap.stop="authorizeReport(record.id)">
+            授权
+          </button>
+          <view v-else class="allow-status">
+            <text class="status-text">已授权</text>
+          </view>
         <view class="record-time">
           <text class="time-text">{{ record.date }}</text>
         </view>
@@ -23,7 +30,7 @@
 
 <script>
 import dayjs from 'dayjs';
-import { selectAllReports } from '@/api/report'
+import { selectAllReports ,allowReport} from '@/api/report'
 export default {
   data() {
     return {
@@ -43,6 +50,25 @@ export default {
   },
   methods: {
 
+    async authorizeReport(reportId) {
+      try {
+        await allowReport(reportId);
+        const reportIndex = this.records.findIndex(r => r.id === reportId);
+        if (reportIndex !== -1) {
+          this.$set(this.records[reportIndex], 'allowState', 'allow');
+        }
+        uni.showToast({
+          title: '授权成功',
+          icon: 'success'
+        });
+      } catch (error) {
+        console.error('授权失败:', error);
+        uni.showToast({
+          title: '授权失败',
+          icon: 'none'
+        });
+      }
+    },
     async fetchRecords() {
       try {
         const res = await selectAllReports(); // 调用后端接口获取数据
@@ -83,6 +109,7 @@ export default {
             url: record.url,
             comment: record.comment,
             doctorId: record.doctorId,
+            allowState: record.allowState,
           };
         });
       } catch (error) {
@@ -121,6 +148,30 @@ export default {
 </script>
 
 <style>
+.auth-button {
+  background-color: #52c41a;
+  padding: 5px 10px;
+  border-radius: 15px;
+  margin-right: 10px;
+  color: #ffffff;
+}
+.allow-status {
+  padding: 5px 10px;
+  border-radius: 15px;
+  margin-right: 10px;
+  background-color: #333
+}
+.action-button {
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 12px;
+  margin-left: 5px;
+}
+.status-text {
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: bold;
+}
 .container {
   display: flex;
   flex-direction: column;

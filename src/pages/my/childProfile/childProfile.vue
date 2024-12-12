@@ -290,8 +290,9 @@ export default {
 
 .profile-name {
   font-size: 18px;
-  font-weight: 500;
-  color: #333333;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 5px;
 }
 
 .profile-details {

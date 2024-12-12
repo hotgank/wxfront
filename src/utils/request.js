@@ -1,6 +1,6 @@
 // utils/request.js
-export const BASE_URL = 'http://localhost:8080'; // 本地测试端口
-// export const BASE_URL='http://1.95.130.39:8080';//后端部署测试端口
+export const BASE_URL = 'https://localhost:8081'; // 本地测试端口
+// export const BASE_URL='https://zeropw.cn';//后端部署测试端口
 // export const BASE_URL='http://192.168.45.50:8080';//本地真机测试
 const request = (options) => {
   const token = uni.getStorageSync('token'); // 获取存储的 token
