@@ -6,42 +6,22 @@
     </view>
 
     <!-- 聊天内容区域 -->
-    <scroll-view
-      ref="chatBody"
-      class="chat-body"
-      scroll-y
-      @scrolltoupper="loadMoreMessages"
-      @scrolltolower="loadLatestMessages"
-      :scroll-with-animation="true"
-      :refresher-enabled="true"
-      :refresher-triggered="isRefreshing"
-      @refresherrefresh="onRefresh"
-    >
-      <view
-        v-for="(message, index) in messages"
-        :key="message.messageSeq"
-        class="message-wrapper"
-      >
+    <scroll-view ref="chatBody" class="chat-body" scroll-y @scrolltoupper="loadMoreMessages"
+      @scrolltolower="loadLatestMessages" :scroll-with-animation="true" :refresher-enabled="true"
+      :refresher-triggered="isRefreshing" @refresherrefresh="onRefresh" :scroll-into-view="scrollIntoView">
+      <view v-for="(message) in messages" :key="message.messageSeq" :id="'message-' + message.messageSeq"
+        class="message-wrapper">
         <!-- 显示发送时间 -->
         <text class="message-time">{{ message.formattedTime }}</text>
 
         <!-- 消息行，根据 sendType 调整布局 -->
-        <view
-          class="message-row"
-          :class="message.sendType === 'user' ? 'user-row' : 'doctor-row'"
-        >
+        <view class="message-row" :class="message.sendType === 'user' ? 'user-row' : 'doctor-row'">
           <!-- 医生发送的消息，头像在左侧 -->
           <template v-if="message.sendType === 'doctor'">
             <image :src="doctor.avatarUrl" class="avatar"></image>
             <view class="message-content doctor-content">
-              <image
-                v-if="message.type === 'image'"
-                :src="message.localUrl || message.url"
-                mode="widthFix"
-                class="message-image"
-                alt="Message image"
-                @tap="previewImage(message.localUrl || message.url)"
-              ></image>
+              <image v-if="message.type === 'image'" :src="message.localUrl || message.url" mode="widthFix"
+                class="message-image" alt="Message image" @tap="previewImage(message.localUrl || message.url)"></image>
               <text v-else class="message-text">{{ message.content }}</text>
             </view>
           </template>
@@ -49,31 +29,20 @@
           <!-- 用户发送的消息，头像在右侧 -->
           <template v-else>
             <view class="message-content user-content">
-              <image
-                v-if="message.type === 'image'"
-                :src="message.localUrl || message.url"
-                mode="widthFix"
-                class="message-image"
-                alt="Message image"
-                @tap="previewImage(message.localUrl || message.url)"
-              ></image>
+              <image v-if="message.type === 'image'" :src="message.localUrl || message.url" mode="widthFix"
+                class="message-image" alt="Message image" @tap="previewImage(message.localUrl || message.url)"></image>
               <text v-else class="message-text">{{ message.content }}</text>
             </view>
             <image :src="userAvatar" class="avatar"></image>
           </template>
         </view>
       </view>
+      <view :id="'bottom-' + bottomId"></view>
     </scroll-view>
 
     <!-- 聊天输入区域 -->
     <view class="chat-footer">
-      <input
-        v-model="inputMessage"
-        class="message-input"
-        type="text"
-        placeholder="输入消息..."
-        @confirm="sendMessage"
-      />
+      <input v-model="inputMessage" class="message-input" type="text" placeholder="输入消息..." @confirm="sendMessage" />
       <button class="image-button" @tap="chooseImage">图片</button>
       <button class="send-button" @tap="sendMessage">发送</button>
     </view>
@@ -108,7 +77,8 @@ export default {
       relationId: '',
       messages: [],
       inputMessage: '',
-      scrollTop: 0,
+      scrollIntoView: '',
+      bottomId: 0, // 新增计数器
       userAvatar: '/static/user-avatars/user-default.jpg', // 设置默认用户头像
       isRefreshing: false,
       messageSeqBefore: null, // 用于加载历史消息
@@ -117,13 +87,20 @@ export default {
       loadingLatest: false,   // 防止重复加载
     };
   },
+
+  // onReady() {
+  //   // 在页面加载完成后，滚动到底部
+  //   this.$nextTick(() => {
+  //     this.scrollIntoView = 'message-' + this.messageSeqAfter;
+  //   });
+  // },
   async onLoad(option) {
     try {
       if (option.doctor) {
         this.doctor = JSON.parse(decodeURIComponent(option.doctor));
       }
       this.relationId = await selectRelationIdByDoctorId(this.doctor.doctorId);
-      
+
       // 获取用户信息并设置用户头像
       const userInfo = await getUserInfo();
       if (userInfo && userInfo.avatarUrl) {
@@ -137,7 +114,7 @@ export default {
       }
 
       await this.fetchMessages();
-      this.scrollToBottom(); // 初始化完成后滚动到底部
+      
     } catch (error) {
       console.error('页面初始化失败:', error);
       uni.showToast({
@@ -156,12 +133,12 @@ export default {
       const formattedHours = hours % 12 || 12;
       const ampm = hours >= 12 ? 'PM' : 'AM';
       const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes;
-      
+
       // 可选：添加日期信息
       const year = date.getFullYear();
       const month = (`0${date.getMonth() + 1}`).slice(-2);
       const day = (`0${date.getDate()}`).slice(-2);
-      
+
       // 返回格式化后的时间，例如 "12/12 9:46 PM"
       return `${month}/${day} ${formattedHours}:${formattedMinutes} ${ampm}`;
     },
@@ -188,11 +165,14 @@ export default {
           try {
             await updateReadInfo(this.relationId, this.messageSeqAfter);
             console.log('已更新已读消息序列号:', this.messageSeqAfter);
+            this.$nextTick(() => {
+              this.scrollIntoView = 'message-' + this.messageSeqAfter;
+            });
           } catch (error) {
             console.error('更新已读消息序列号失败:', error);
           }
         }
-        this.scrollToBottom();
+        
       } catch (error) {
         console.error('加载消息失败:', error);
         uni.showToast({
@@ -248,6 +228,11 @@ export default {
               );
 
               console.log('图片发送成功:', response.imageUrl);
+              this.$nextTick(() => {
+
+                this.scrollIntoView = 'bottom-' + this.bottomId; // 设置新的 scrollIntoView
+                this.bottomId += 1; // 递增计数器
+              });
               // 注意：由于 uploadChatImageApi 不返回 messageSeq 和 timestamp，这里无法更新它们
               // 如果需要从后端获取最新的 messageSeq 和 timestamp，可以考虑调用另一个 API 或重新获取消息列表
             } else {
@@ -329,7 +314,9 @@ export default {
       this.inputMessage = '';
 
       this.$nextTick(() => {
-        this.scrollToBottom();
+
+        this.scrollIntoView = 'bottom-' + this.bottomId; // 设置新的 scrollIntoView
+        this.bottomId += 1; // 递增计数器
       });
 
       try {
@@ -384,7 +371,7 @@ export default {
           return; // 如果为空，直接退出
         }
 
-        const processedMessages = await this.processMessages(moreMessages);
+        const processedMessages = await this.processMessages(moreMessages[1]);
         console.log('处理后的历史消息:', processedMessages);
 
         this.messages = processedMessages
@@ -417,15 +404,14 @@ export default {
           console.log('没有新消息');
           return;
         }
-
+        
         // 处理消息数据
-        const processedMessages = await this.processMessages(latestMessages);
-
-        // 过滤掉已加载的消息
+        const processedMessages = await this.processMessages(latestMessages[1]);
+        
         const newMessages = processedMessages.filter(
           (msg) => msg.messageSeq > this.messageSeqAfter
         );
-
+        console.log('获取到的新消息:', newMessages);
         if (newMessages.length > 0) {
           this.messages = this.messages.concat(
             newMessages.sort((a, b) => a.messageSeq - b.messageSeq)
@@ -454,15 +440,7 @@ export default {
     },
 
 
-    // 滚动到底部
-    scrollToBottom() {
-      this.$nextTick(() => {
-        const chatBody = this.$refs.chatBody;
-        if (chatBody) {
-          chatBody.scrollToLower();
-        }
-      });
-    },
+
 
     async onRefresh() {
       console.log("触发刷新操作，加载历史消息");
@@ -526,7 +504,8 @@ export default {
 /* 单条消息包装器 */
 .message-wrapper {
   display: flex;
-  flex-direction: column; /* 使时间和消息内容垂直排列 */
+  flex-direction: column;
+  /* 使时间和消息内容垂直排列 */
   margin-bottom: 15px;
 }
 
@@ -568,19 +547,23 @@ export default {
   border-radius: 8px;
   word-wrap: break-word;
   position: relative;
-  background-color: #fff; /* 默认背景色 */
+  background-color: #fff;
+  /* 默认背景色 */
 }
 
 /* 用户发送的气泡颜色 */
 .user-content {
-  background-color: #dcf8c6; /* 微信发送消息的绿色 */
-  margin-left: 8px; /* 与头像分隔 */
+  background-color: #dcf8c6;
+  /* 微信发送消息的绿色 */
+  margin-left: 8px;
+  /* 与头像分隔 */
 }
 
 /* 医生发送的气泡颜色 */
 .doctor-content {
   background-color: #fff;
-  margin-right: 8px; /* 与头像分隔 */
+  margin-right: 8px;
+  /* 与头像分隔 */
 }
 
 /* 消息文本样式 */
@@ -634,7 +617,4 @@ export default {
 .image-button {
   background-color: #4cd964;
 }
-
-
-
 </style>

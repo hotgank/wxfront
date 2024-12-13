@@ -25,7 +25,7 @@ export async function getLast30Messages(relationId) {
       console.log('relationId:', relationId); // 打印 relationId，确保其不为空
   
       const response = await request({
-        url: `/api/messages/last30/${relationId}`,
+        url: `/api/messages/new30/${relationId}`,
         method: 'GET',
       });
   
