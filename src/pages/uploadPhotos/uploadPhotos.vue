@@ -5,6 +5,17 @@
     </view>
     <view class="content">
       <text class="instruction">请按照以下要求上传照片：</text>
+      
+      <!-- 添加示例图片 -->
+      <view class="example-image">
+        <image 
+          src="/static/example.png"
+          mode="aspectFit"
+          class="example-photo"
+        ></image>
+        <text class="example-caption">示例图片</text>
+      </view>
+
       <view v-for="(requirement, index) in photoRequirements" :key="index" class="photo-requirement">
         <text class="requirement-title">{{ requirement.title }}</text>
         <view class="photo-upload">
@@ -20,6 +31,7 @@
     </view>
   </view>
 </template>
+
 
 <script>
 import { uploadImage } from '@/api/image'; // Make sure to adjust the import path
@@ -205,5 +217,26 @@ export default {
 
 .submit-button:disabled {
   background-color: #cccccc;
+}
+.example-image {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  padding: 15px;
+}
+
+.example-photo {
+  width: 100%;
+  height: 200px;
+  object-fit: contain;
+}
+
+.example-caption {
+  font-size: 14px;
+  color: #666;
+  margin-top: 10px;
 }
 </style>
