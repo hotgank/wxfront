@@ -16,6 +16,7 @@ export const getUserInfo = async () => {
     console.log('获取用户信息成功:', res);
     if(res.avatarUrl)
       return {...res, avatarUrl: res.avatarUrl.replace('http://localhost:8080', `${BASE_URL}`)}
+
     return res; // 假设接口直接返回用户对象
   } catch (error) {
     console.error('获取用户信息时发生错误:', error);

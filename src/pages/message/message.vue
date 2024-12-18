@@ -1,28 +1,34 @@
 <template>
-	<view class="container">
-	  <view class="header">
-		<text class="title">消息</text>
-	  </view>
-	  <scroll-view class="message-list" scroll-y="true">
-		<view v-for="chat in chats" :key="chat.doctor.doctorId" class="chat-card" @tap="navigateToChat(chat.doctor)">
-		  <view class="avatar-container">
-			<image :src="chat.doctor.avatarUrl" class="doctor-avatar"></image>
-        <view v-if="chat.unreadCount > 0" class="unread-indicator">
-          <text class="unread-count">{{ chat.unreadCount }}</text>
+  <view class="container">
+    <!-- 背景图片 -->
+    <image class="background-image" src="/static/icons/background-message2.jpg" mode="aspectFill"></image>
+    
+    <!-- 内容层 -->
+    <view class="overlay">
+      <view class="header">
+        <text class="title">消息</text>
+      </view>
+      <scroll-view class="message-list" scroll-y="true">
+        <view v-for="chat in chats" :key="chat.doctor.doctorId" class="chat-card" @tap="navigateToChat(chat.doctor)">
+          <view class="avatar-container">
+            <image :src="chat.doctor.avatarUrl || '/static/doctor-avatars/default.jpg'" class="doctor-avatar"></image>
+            <view v-if="chat.unreadCount > 0" class="unread-indicator">
+              <text class="unread-count">{{ chat.unreadCount }}</text>
+            </view>
+          </view>
+          <view class="chat-info">
+            <view class="chat-header">
+              <text class="doctor-name">{{ chat.doctor.name }}</text>
+              <text class="last-message-time">{{ chat.lastMessageTime }}</text>
+            </view>
+            <text class="last-message" :class="{ 'unread': chat.unread }">{{ chat.lastMessage }}</text>
+          </view>
         </view>
-		  </view>
-		  <view class="chat-info">
-			<view class="chat-header">
-			  <text class="doctor-name">{{ chat.doctor.name }}</text>
-			  <text class="last-message-time">{{ chat.lastMessageTime }}</text>
-			</view>
-			<text class="last-message" :class="{ 'unread': chat.unread }">{{ chat.lastMessage }}</text>
-		  </view>
-		</view>
-	  </scroll-view>
-	</view>
-  </template>
-  
+      </scroll-view>
+    </view>
+  </view>
+</template>
+
 
 <script>
 import dayjs from 'dayjs';
@@ -49,7 +55,9 @@ export default {
               let avatarUrl = item.doctor.avatarUrl;
               if (!avatarUrl) {
                 avatarUrl = '/static/doctor-avatars/default.jpg';
-              } 
+              } else {
+                
+              }
 
               // 获取未读消息数量
               const unreadInfo = await this.getUnreadCount(item.message.relationId);
@@ -152,14 +160,29 @@ export default {
 
 <style>
 .container {
-  display: flex;
-  flex-direction: column;
+  position: relative;
+  width: 100%;
   height: 100vh;
   background-color: #f5f5f5;
-  background-image: url('/static/icons/background-message.jpg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+}
+
+.background-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.overlay {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: rgba(245, 245, 245, 0.8); /* 半透明覆盖层 */
+ 
 }
 
 .header {
@@ -176,6 +199,7 @@ export default {
 
 .message-list {
   flex: 1;
+  overflow-y: auto;
 }
 
 .chat-card {
@@ -197,6 +221,7 @@ export default {
   width: 50px;
   height: 50px;
   border-radius: 25px;
+  object-fit: cover; /* 确保图片按比例缩放 */
 }
 
 .unread-indicator {

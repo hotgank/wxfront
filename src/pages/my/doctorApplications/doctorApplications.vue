@@ -21,7 +21,7 @@
 
 <script>
 import { getSelectApplication } from '@/api/relation'; // 动态请求方法
-import { getDoctorAvatar } from '@/api/image';
+import { BASE_URL } from '../../../utils/request';
 
 export default {
   data() {
@@ -46,10 +46,15 @@ export default {
 
       this.doctors = await Promise.all(
         data.map(async (item) => {
+          let avatarUrl = item.doctor.avatarUrl;
+          if(avatarUrl && avatarUrl.startsWith('http://localhost:8080')){
+            avatarUrl = avatarUrl.replace('http://localhost:8080', `${BASE_URL}`);
+          }
+
           const doctor = {
             doctorId: item.doctor.doctorId,
             name: item.doctor.name || item.doctor.username,
-            avatarUrl: item.doctor.avatarUrl,
+            avatarUrl: avatarUrl,
             workplace: item.doctor.workplace || '未知医院',
             status:
               item.relationStatus === 'pending'
@@ -64,15 +69,8 @@ export default {
             rating: item.doctor.rating,
           };
 
-          // 请求医生头像的 Base64 数据
-          if (doctor.avatarUrl) {
-            try {
-              const base64Avatar = await getDoctorAvatar(doctor.avatarUrl);
-              doctor.avatarUrl = base64Avatar || doctor.avatarUrl; // 请求失败时保留原始 URL
-            } catch (err) {
-              console.error(`获取医生 ${doctor.doctorId} 的头像失败`);
-            }
-          }
+          
+          
 
           return doctor;
         })
