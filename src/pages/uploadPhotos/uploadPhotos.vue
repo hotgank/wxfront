@@ -86,7 +86,7 @@ export default {
           // Optionally redirect after success
           setTimeout(() => {
             uni.reLaunch({
-              url: `/pages/childReports/childReports?childId=${this.childId}` // 使用模板字符串插入 childId
+              url: `/pages/my/my` 
             });
           }, 2000);
 

@@ -79,19 +79,20 @@ export default {
       try {
         if (!this.doctors.length) {
           const doctors = await getMyDoctors(); // 获取医生信息
-          this.doctors = await Promise.all(
-            doctors.map(async (doctor) => {
-              if (doctor.avatarUrl) {
-                try {
-                  const base64Avatar = await getDoctorAvatar(doctor.avatarUrl);
-                  doctor.avatarUrl = base64Avatar || doctor.avatarUrl; // 如果请求失败，保留原始 URL
-                } catch (error) {
-                  console.error(`获取医生 ${doctor.doctorId} 的头像失败`);
-                }
-              }
-              return doctor;
-            })
-          );
+          this.doctors = doctors;
+          // this.doctors = await Promise.all(
+          //   doctors.map(async (doctor) => {
+          //     if (doctor.avatarUrl) {
+          //       try {
+          //         const base64Avatar = await getDoctorAvatar(doctor.avatarUrl);
+          //         doctor.avatarUrl = base64Avatar || doctor.avatarUrl; // 如果请求失败，保留原始 URL
+          //       } catch (error) {
+          //         console.error(`获取医生 ${doctor.doctorId} 的头像失败`);
+          //       }
+          //     }
+          //     return doctor;
+          //   })
+          // );
         }
       } catch (error) {
         uni.showToast({

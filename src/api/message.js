@@ -1,5 +1,5 @@
 import request from '@/utils/request';
-
+import { BASE_URL } from '../utils/request';
 /**
  * 获取指定消息序列号之后的信息
  * @param {String} relationId - 消息关联 ID，必传
@@ -109,7 +109,29 @@ export function getLastMessage() {
         console.error('获取最后消息失败:', error);
         throw error;
       }
-      return data;
+      let messages = data;
+      
+          // 检查 doctors 是否为数组
+          if (!Array.isArray(messages)) {
+            throw new Error('返回的数据格式不正确');
+          }
+      
+          // 替换 avatarUrl 的前缀
+          messages = messages.map(message => {
+            if (message.doctor.avatarUrl && message.doctor.avatarUrl.startsWith('http://localhost:8080')) {
+              return {
+                ...message,
+                doctor: {
+                  ...message.doctor,
+                  avatarUrl: message.doctor.avatarUrl.replace('http://localhost:8080', `${BASE_URL}`)
+                }
+              };
+            }
+            return message;
+          });
+      
+          console.log("我的最后聊天信息:", messages);
+          return messages;
     })
     .catch(err => {
       console.error('请求过程中出现错误:', err);

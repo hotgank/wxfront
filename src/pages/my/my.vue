@@ -66,7 +66,7 @@ export default {
       const userInfo = await getUserInfo();
       if (userInfo.avatarUrl) {
         try {
-          this.userInfo.avatarUrl = await getDoctorAvatar(userInfo.avatarUrl);
+          this.userInfo.avatarUrl = userInfo.avatarUrl
         } catch (error) {
           console.error("获取头像失败:", error);
         }

@@ -86,24 +86,24 @@ const store = new Vuex.Store({
         const doctors = await getAllDoctors();
 
         // 更新头像
-        const updatedDoctors = await Promise.all(
-          doctors.map(async (doctor) => {
-            if (doctor.avatarUrl) {
-              try {
-                // 调用 getDoctorAvatar 获取 Base64 格式的头像
-                const base64Avatar = await getDoctorAvatar(doctor.avatarUrl);
-                doctor.avatarUrl = base64Avatar || doctor.avatarUrl; // 请求失败时保留原始 URL
-              } catch {
-                console.error(`获取医生 ${doctor.doctorId} 的头像失败`);
-              }
-            }
-            return doctor;
-          })
-        );
+        // const updatedDoctors = await Promise.all(
+        //   doctors.map(async (doctor) => {
+        //     if (doctor.avatarUrl) {
+        //       try {
+        //         // 调用 getDoctorAvatar 获取 Base64 格式的头像
+        //         const base64Avatar = await getDoctorAvatar(doctor.avatarUrl);
+        //         doctor.avatarUrl = base64Avatar || doctor.avatarUrl; // 请求失败时保留原始 URL
+        //       } catch {
+        //         console.error(`获取医生 ${doctor.doctorId} 的头像失败`);
+        //       }
+        //     }
+        //     return doctor;
+        //   })
+        // );
 
         // 提交到 Vuex 的 state
-        commit('setDoctors', updatedDoctors);
-        return updatedDoctors;
+        commit('setDoctors', doctors);
+        return doctors;
       } catch (error) {
         console.error('加载医生信息失败:', error.message);
         throw error;

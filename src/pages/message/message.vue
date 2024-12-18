@@ -47,16 +47,9 @@ export default {
         const formattedChats = await Promise.all(
             data.map(async (item) => {
               let avatarUrl = item.doctor.avatarUrl;
-              if (avatarUrl) {
-                try {
-                  avatarUrl = await getDoctorAvatar(avatarUrl);
-                } catch (error) {
-                  console.error('获取头像失败:', error);
-                  avatarUrl = '/static/doctor-avatars/default.jpg';
-                }
-              } else {
+              if (!avatarUrl) {
                 avatarUrl = '/static/doctor-avatars/default.jpg';
-              }
+              } 
 
               // 获取未读消息数量
               const unreadInfo = await this.getUnreadCount(item.message.relationId);

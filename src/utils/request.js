@@ -1,11 +1,11 @@
 // utils/request.js
-export const BASE_URL = 'https://localhost:8081'; // 本地测试端口
-// export const BASE_URL='https://zeropw.cn';//后端部署测试端口
+// export const BASE_URL = 'https://localhost:8081'; // 本地测试端口
+export const BASE_URL='https://zeropw.cn:8081';//后端部署测试端口
 // export const BASE_URL='http://192.168.45.50:8080';//本地真机测试
 const request = (options) => {
   const token = uni.getStorageSync('token'); // 获取存储的 token
   const { url, method = 'GET', data, params } = options;
-
+ 
   // 构建请求的 URL，如果是 GET 请求且有 params，转换为查询字符串
   let requestUrl = BASE_URL + url;
   if (method === 'GET' && params) {

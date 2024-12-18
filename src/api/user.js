@@ -1,5 +1,5 @@
 import request from '../utils/request';
-
+import { BASE_URL } from '../utils/request';
 /**
  * 获取用户信息
  * @returns {Promise<object>} 直接返回用户信息对象
@@ -14,6 +14,8 @@ export const getUserInfo = async () => {
       throw new Error('获取用户信息失败');
     }
     console.log('获取用户信息成功:', res);
+    if(res.avatarUrl)
+      return {...res, avatarUrl: res.avatarUrl.replace('http://localhost:8080', `${BASE_URL}`)}
     return res; // 假设接口直接返回用户对象
   } catch (error) {
     console.error('获取用户信息时发生错误:', error);
