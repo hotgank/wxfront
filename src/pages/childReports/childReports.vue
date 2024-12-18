@@ -191,7 +191,7 @@ export default {
   background-color: #52c41a;
   padding: 5px 10px;
   border-radius: 15px;
-  margin-right: 10px;
+  margin-right: 15px;
   color: #ffffff;
 }
 

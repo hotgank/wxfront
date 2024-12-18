@@ -1,7 +1,22 @@
 <template>
   <view class="container">
     <view class="header">
-      <text class="title">测评记录</text>
+      <view class="header-content">
+        <text class="title">测评记录</text>
+        <view class="filter-container">
+          <picker 
+            mode="selector" 
+            :range="reportTypeList" 
+            @change="onReportTypeChange" 
+            class="report-type-picker"
+          >
+            <view class="picker-wrapper">
+              <text class="picker-text">{{ selectedReportType || '全部类型' }}</text>
+              <text class="picker-icon">▼</text>
+            </view>
+          </picker>
+        </view>
+      </view>
     </view>
     <scroll-view class="record-list" scroll-y="true">
       <view v-for="(record) in sortedRecords" :key="record.id" class="record-card"
@@ -30,18 +45,30 @@
 
 <script>
 import dayjs from 'dayjs';
-import { selectAllReports ,allowReport} from '@/api/report'
+import { selectAllReports, allowReport } from '@/api/report';
+
 export default {
   data() {
     return {
-      records: [
-
-      ]
+      records: [],
+      selectedReportType: '', // 存储选择的报告类型
+      timer: null,
+      unreadCounts: {}
     }
   },
   computed: {
+    // 获取唯一的报告类型，并在开头添加“全部类型”
+    reportTypeList() {
+      const types = new Set(this.records.map(record => record.reportType));
+      return ['全部类型', ...Array.from(types)];
+    },
+    // 根据选择的报告类型进行排序和过滤
     sortedRecords() {
-      return this.records.sort((a, b) => new Date(b.date) - new Date(a.date));
+      let filtered = this.records;
+      if (this.selectedReportType && this.selectedReportType !== '全部类型') {
+        filtered = filtered.filter(record => record.reportType === this.selectedReportType);
+      }
+      return filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
     }
   },
   onLoad() {
@@ -49,7 +76,6 @@ export default {
     console.log('sortedRecords', this.sortedRecords);
   },
   methods: {
-
     async authorizeReport(reportId) {
       try {
         await allowReport(reportId);
@@ -121,8 +147,6 @@ export default {
         this.records = []; // 异常情况下重置数据
       }
     },
-
-
     viewReportDetails(reportId) {
       const report = this.records.find(r => r.id === reportId);
       if (!report) {
@@ -142,7 +166,48 @@ export default {
           url: `/pages/reportDetails/reportDetails?report=${params}`,
         });
       }
+    },
+    onReportTypeChange(e) {
+      const index = e.detail.value;
+      this.selectedReportType = this.reportTypeList[index];
+      console.log('选择的报告类型:', this.selectedReportType);
+    },
+    startTimer() {
+      this.timer = setInterval(() => {
+        this.fetchRecords();
+      }, 5000);
+    },
+    stopTimer() {
+      if (this.timer) {
+        clearInterval(this.timer);
+        this.timer = null;
+      }
+    },
+    showNewMessageNotification(count) {
+      console.log(`显示新消息提醒: ${count} 条未读消息`);
+      uni.showToast({
+        title: `您有 ${count} 条新消息`,
+        icon: 'none',
+        duration: 2000
+      });
     }
+  },
+  
+  async onShow() {
+    console.log('页面显示，onShow 被触发');
+    await this.fetchRecords();
+    if (this.timer === null) {
+      console.log("定时器为空，开始计时");
+      this.startTimer();
+    }
+  },
+  onHide() {
+    console.log('页面卸载，onHide 被触发');
+    // this.stopTimer();
+  },
+  onUnload() {
+    console.log('页面卸载，onUnload 被触发');
+    // this.stopTimer();
   }
 }
 </script>
@@ -152,14 +217,14 @@ export default {
   background-color: #52c41a;
   padding: 5px 10px;
   border-radius: 15px;
-  margin-right: 10px;
+  margin-right: 20px;
   color: #ffffff;
 }
 .allow-status {
   padding: 5px 10px;
   border-radius: 15px;
   margin-right: 10px;
-  background-color: #333
+  background-color: #333;
 }
 .action-button {
   padding: 5px 10px;
@@ -180,15 +245,61 @@ export default {
 }
 
 .header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   padding: 20px;
   background-color: #ffffff;
   border-bottom: 1px solid #e0e0e0;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
 }
 
 .title {
   font-size: 24px;
   font-weight: bold;
   color: #333;
+}
+
+.filter-container {
+  position: relative;
+}
+
+.report-type-picker {
+  width: 150px; /* 调整筛选器的宽度 */
+}
+
+.picker-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 8px 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.picker-wrapper:active {
+  background-color: #f8f8f8;
+  transform: translateY(1px);
+}
+
+.picker-text {
+  font-size: 14px;
+  color: #333;
+}
+
+.picker-icon {
+  font-size: 12px;
+  color: #666;
+  transition: transform 0.3s ease;
 }
 
 .record-list {
@@ -200,7 +311,7 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.9); /* Slightly more opaque to stand out against background */
   border-radius: 10px;
   padding: 15px;
   margin-bottom: 10px;
@@ -246,5 +357,29 @@ export default {
 .record-status.generating {
   background-color: #ff9500;
   color: #ffffff;
+}
+
+/* 额外样式，确保响应式设计 */
+@media (max-width: 768px) {
+  .picker-wrapper {
+    padding: 6px 10px;
+  }
+
+  .title {
+    font-size: 20px;
+  }
+
+  .record-name {
+    font-size: 16px;
+  }
+
+  .record-type, .record-time, .record-status {
+    font-size: 12px;
+  }
+
+  .action-button, .auth-button {
+    padding: 4px 8px;
+    font-size: 10px;
+  }
 }
 </style>
