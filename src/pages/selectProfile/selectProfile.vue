@@ -3,7 +3,7 @@
     <view class="header">
       <text class="title">选择档案</text>
     </view>
-    <scroll-view class="profile-list" scroll-y="true">
+    <scroll-view v-if="profiles.length > 0" class="profile-list" scroll-y="true">
       <view v-for="(profile, index) in profiles" :key="index" class="profile-card" @tap="selectProfile(profile.childId)">
         <view class="profile-info">
           <text class="profile-name">{{ profile.name }}</text>
@@ -14,24 +14,28 @@
         </view>
       </view>
     </scroll-view>
+    <view v-else class="no-profiles">
+      <text class="no-profiles-text">暂无档案</text>
+      <button class="add-profile-button" @tap="goToAddProfile">添加孩子档案</button>
+    </view>
   </view>
 </template>
 
 <script>
 import { getAllChildrenProfiles, getChildDetails } from '@/api/child.js';
+
 export default {
-  
   data() {
     return {
       detectionType: '',
       profiles: []
     }
   },
-  async mounted() {
-    await this.loadChildrenProfiles();
-  },
   onLoad(option) {
     this.detectionType = option.type;
+  },
+  onShow() {
+    this.loadChildrenProfiles();
   },
   methods: {
     async loadChildrenProfiles() {
@@ -68,6 +72,11 @@ export default {
     selectProfile(childId) {
       uni.navigateTo({
         url: `/pages/uploadPhotos/uploadPhotos?type=${this.detectionType}&childId=${childId}`
+      });
+    },
+    goToAddProfile() {
+      uni.navigateTo({
+        url: '/pages/my/childProfile/childProfile'
       });
     }
   }
@@ -141,5 +150,28 @@ export default {
 .select {
   background-color: #4cd964;
   color: #ffffff;
+}
+
+.no-profiles {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.no-profiles-text {
+  font-size: 18px;
+  color: #666;
+  margin-bottom: 20px;
+}
+
+.add-profile-button {
+  background-color: #007aff;
+  color: #ffffff;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-size: 16px;
 }
 </style>

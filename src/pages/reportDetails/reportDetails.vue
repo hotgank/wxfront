@@ -60,7 +60,7 @@ export default {
           type: report.reportType || '',
           date: report.date || '',
           result: report.result || '请上传正确姿势和角度照片',
-          analyse: report.analyse || '',
+          analyse: report.analyse || '如有较重不适，请尽快前往医院就诊',
           doctorComment: report.comment || '暂无医生留言',
           images: report.url ? [report.url] : [], // 确保为数组
           urls: []

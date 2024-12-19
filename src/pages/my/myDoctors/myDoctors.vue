@@ -30,6 +30,9 @@
           </button>
         </view>
       </view>
+      <view v-if="doctors.length === 0" class="no-profiles">
+      <text class="no-profiles-text">暂无我的医生</text>
+    </view>
     </scroll-view>
 
     <!-- 评分模态框 -->
@@ -330,4 +333,15 @@ export default {
 .submit-button:active {
   background-color: #45a049;
 }
+.no-profiles {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 200px;
+  }
+
+  .no-profiles-text {
+    font-size: 18px;
+    color: #999;
+  }
 </style>

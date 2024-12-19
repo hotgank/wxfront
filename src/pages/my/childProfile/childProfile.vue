@@ -22,6 +22,9 @@
           <button class="action-button delete" @tap.stop="showDeleteConfirmation(profile.childId)">删除</button>
         </view>
       </view>
+      <view v-if="childrenProfiles.length === 0" class="no-profiles">
+      <text class="no-profiles-text">暂无档案</text>
+    </view>
     </scroll-view>
 
     <!-- 添加/编辑档案模态框 -->
@@ -497,4 +500,15 @@ export default {
     font-size: 15px;
   }
 }
+.no-profiles {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 200px;
+  }
+
+  .no-profiles-text {
+    font-size: 18px;
+    color: #999;
+  }
 </style>

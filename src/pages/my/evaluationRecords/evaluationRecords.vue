@@ -39,6 +39,9 @@
           <text>{{ record.isGenerating ? '生成中' : '已完成' }}</text>
         </view>
       </view>
+      <view v-if="sortedRecords.length === 0" class="no-profiles">
+      <text class="no-profiles-text">暂无测评记录</text>
+    </view>
     </scroll-view>
   </view>
 </template>
@@ -358,6 +361,17 @@ export default {
   background-color: #ff9500;
   color: #ffffff;
 }
+.no-profiles {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 200px;
+  }
+
+  .no-profiles-text {
+    font-size: 18px;
+    color: #999;
+  }
 
 /* 额外样式，确保响应式设计 */
 @media (max-width: 768px) {
@@ -381,5 +395,6 @@ export default {
     padding: 4px 8px;
     font-size: 10px;
   }
+  
 }
 </style>

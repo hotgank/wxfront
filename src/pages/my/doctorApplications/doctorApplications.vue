@@ -15,6 +15,9 @@
           <text>{{ doctor.status }}</text>
         </view>
       </view>
+      <view v-if="doctors.length === 0" class="no-profiles">
+      <text class="no-profiles-text">暂无申请记录</text>
+    </view>
     </scroll-view>
   </view>
 </template>
@@ -182,4 +185,15 @@ export default {
   background-color: #ff3b30;
   color: #ffffff;
 }
+.no-profiles {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 200px;
+  }
+
+  .no-profiles-text {
+    font-size: 18px;
+    color: #999;
+  }
 </style>
