@@ -4,9 +4,9 @@
     <view class="content">
       <!-- 用户信息部分 -->
       <view class="user-info">
-        <button class="avatar-button" @tap="onChooseAvatar">
+        <view class="avatar-button" @tap="onChooseAvatar">
           <image class="avatar" :src="userInfo.avatarUrl" mode="aspectFill"></image>
-        </button>
+        </view>
         <view>
           <input
             class="nickname-input"
@@ -49,7 +49,7 @@
 
 <script>
 import { getUserInfo, uploadUsername } from "@/api/user"; // 引用封装的请求方法
-import { uploadUserAvatar, getDoctorAvatar } from "@/api/image"; // 引用封装的图片方法
+import { uploadUserAvatar,  } from "@/api/image"; // 引用封装的图片方法
 
 export default {
   data() {
@@ -148,7 +148,7 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 .container {
   position: relative;
   height: 100vh;
@@ -181,12 +181,21 @@ export default {
   margin-bottom: 20px;
 }
 
-.avatar {
+.avatar-button {
+  /* 使用 <view> 代替 <button>，移除所有边框和背景 */
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  border: 3px solid #ffffff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden; /* 确保图片圆形 */
+  cursor: pointer;  /* 鼠标悬停时显示为指针 */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* 可选：保留阴影 */
+}
+
+.avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  /* 如果需要透明边框，可以在这里添加 */
 }
 
 .nickname-input {
@@ -237,11 +246,5 @@ export default {
   color: #333;
   font-weight: bold;
   text-align: center;
-}
-
-.avatar-button {
-  border: none;
-  background: transparent;
-  padding: 0;
 }
 </style>

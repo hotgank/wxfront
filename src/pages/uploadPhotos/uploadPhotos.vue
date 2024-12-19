@@ -5,6 +5,14 @@
     </view>
     <view class="content">
       <text class="instruction">请按照以下要求上传照片：</text>
+      <br>
+      <text class="instruction">
+        1. 图片大小不能超过1.5M
+      </text>
+      <br>
+      <text class="instruction">
+        2. 背景图尽量干净，建议纯白色背景,否则可能失败
+      </text>
       
       <!-- 添加示例图片 -->
       <view class="example-image">
@@ -19,8 +27,7 @@
       <view v-for="(requirement, index) in photoRequirements" :key="index" class="photo-requirement">
         <text class="requirement-title">{{ requirement.title }}</text>
         <view class="photo-upload">
-          <image v-if="uploadedPhotos[index]" :src="uploadedPhotos[index]" mode="aspectFit" class="uploaded-photo">
-          </image>
+          <image v-if="uploadedPhotos[index]" :src="uploadedPhotos[index]" mode="aspectFit" class="uploaded-photo"></image>
           <view v-else class="upload-options">
             <button @tap="chooseImage(index, 'album')" class="upload-option">从相册选择</button>
             <button @tap="chooseImage(index, 'camera')" class="upload-option">拍照上传</button>
@@ -32,10 +39,10 @@
   </view>
 </template>
 
-
 <script>
-import { uploadImage } from '@/api/image'; // Make sure to adjust the import path
+import { uploadImage } from '@/api/image'; // 确保调整导入路径
 import { aiDetect } from '../../api/aiApi';
+
 export default {
   data() {
     return {
@@ -44,13 +51,16 @@ export default {
       profileId: '',
       photoRequirements: [
         { title: '正面全身照' }
+        // 可以根据需求添加更多要求
       ],
-      uploadedPhotos: []
+      uploadedPhotos: [],
+      fileSizeLimit: 1.5 * 1024 * 1024 // 1.5 MB in bytes
     };
   },
   computed: {
     allPhotosUploaded() {
-      return this.uploadedPhotos.length === this.photoRequirements.length;
+      return this.uploadedPhotos.length === this.photoRequirements.length &&
+             this.uploadedPhotos.every(photo => photo);
     }
   },
   onLoad(option) {
@@ -65,7 +75,37 @@ export default {
         sizeType: ['original', 'compressed'],
         sourceType: [sourceType],
         success: (res) => {
-          this.$set(this.uploadedPhotos, index, res.tempFilePaths[0]);
+          const tempFilePath = res.tempFilePaths[0];
+          
+          // 使用 uni.getFileInfo 获取文件大小
+          uni.getFileInfo({
+            filePath: tempFilePath,
+            success: (fileInfo) => {
+              if (fileInfo.size > this.fileSizeLimit) {
+                uni.showToast({
+                  title: '图片大小超过1.5M，请重新上传',
+                  icon: 'none',
+                  duration: 2000
+                });
+              } else {
+                this.$set(this.uploadedPhotos, index, tempFilePath);
+              }
+            },
+            fail: () => {
+              uni.showToast({
+                title: '获取图片信息失败',
+                icon: 'none',
+                duration: 2000
+              });
+            }
+          });
+        },
+        fail: () => {
+          uni.showToast({
+            title: '选择图片失败',
+            icon: 'none',
+            duration: 2000
+          });
         }
       });
     },
@@ -76,26 +116,26 @@ export default {
         });
 
         try {
-          // Upload each photo and collect their URLs
+          // 上传每张图片并收集其URL
           const uploadPromises = this.uploadedPhotos.map(photo => uploadImage(photo));
           const uploadedUrls = await Promise.all(uploadPromises);
 
           uni.hideLoading();
 
-          // Call the AI detection API with the first uploaded image URL
-          const imageUrl = uploadedUrls[0]; // Assuming you want to use the first uploaded photo
-          const aiResult = aiDetect(this.childId, imageUrl,this.detectionType);
+          // 调用AI检测API，假设需要等待结果
+          const imageUrl = uploadedUrls[0]; // 假设使用第一张上传的图片
+          const aiResult = await aiDetect(this.childId, imageUrl, this.detectionType); // 添加await
 
           console.log('AI检测结果:', aiResult);
 
-          // Handle the AI detection result here
+          // 处理AI检测结果
           uni.showToast({
             title: 'AI检测成功',
             icon: 'success',
             duration: 2000
           });
 
-          // Optionally redirect after success
+          // 可选：成功后重定向
           setTimeout(() => {
             uni.reLaunch({
               url: `/pages/my/my` 
@@ -114,7 +154,6 @@ export default {
     }
   }
 };
-
 </script>
 
 <style>
@@ -145,7 +184,7 @@ export default {
 .instruction {
   font-size: 16px;
   color: #666;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 }
 
 .photo-requirement {
@@ -194,7 +233,6 @@ export default {
   height: 100%;
 }
 
-
 .upload-option {
   background-color: #007aff;
   color: #ffffff;
@@ -218,6 +256,7 @@ export default {
 .submit-button:disabled {
   background-color: #cccccc;
 }
+
 .example-image {
   display: flex;
   flex-direction: column;

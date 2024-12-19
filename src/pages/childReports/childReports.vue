@@ -37,7 +37,6 @@
   </view>
 </template>
 
-
 <script>
 import { getChildDetails } from '@/api/child.js';
 import { fetchChildReport, deleteReport, allowReport } from '@/api/report.js';
@@ -52,7 +51,7 @@ export default {
   },
   computed: {
     sortedReports() {
-      return this.reports.sort((a, b) => new Date(b.date) - new Date(a.date));
+      return [...this.reports].sort((a, b) => new Date(b.date) - new Date(a.date));
     }
   },
   onLoad(option) {
@@ -120,11 +119,18 @@ export default {
         this.reports = reports.map(report => {
           const dateArray = report.createdAt;
           const date = new Date(dateArray[0], dateArray[1] - 1, dateArray[2], dateArray[3], dateArray[4], dateArray[5]);
+          
+          // 手动格式化日期为中文格式
+          const year = date.getFullYear();
+          const month = date.getMonth() + 1;
+          const day = date.getDate();
+          const formattedDate = `${year}年${month}月${day}日`;
+
           return {
             reportId: report.reportId,
-            date: date.toLocaleDateString(),
+            date: formattedDate,
             reportType: report.reportType,
-            isGenerating: report.state !== '检测完成',
+            isGenerating: report.state === '检测中',
             analyse: report.analyse,
             result: report.result,
             url: report.url,
@@ -284,7 +290,7 @@ export default {
 }
 
 .allow-status {
-  background-color: #333
+  background-color: #333;
 }
 
 .generating-text,
@@ -310,5 +316,4 @@ export default {
   background-color: #ff3b30;
   color: #ffffff;
 }
-
 </style>
