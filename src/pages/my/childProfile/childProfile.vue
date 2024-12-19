@@ -1,9 +1,12 @@
 <template>
   <view class="container">
+    <!-- 头部部分保持不变 -->
     <view class="header">
       <text class="title">孩子档案</text>
       <button class="add-button" @tap="showAddModal">添加档案</button>
     </view>
+
+    <!-- 档案列表部分保持不变 -->
     <scroll-view class="profile-list" scroll-y="true">
       <view
         v-for="(profile, index) in childrenProfiles"
@@ -23,8 +26,8 @@
         </view>
       </view>
       <view v-if="childrenProfiles.length === 0" class="no-profiles">
-      <text class="no-profiles-text">暂无档案</text>
-    </view>
+        <text class="no-profiles-text">暂无档案</text>
+      </view>
     </scroll-view>
 
     <!-- 添加/编辑档案模态框 -->
@@ -51,8 +54,27 @@
           </view>
         </picker>
 
-        <input v-model.number="currentProfile.weight" class="modal-input" type="number" placeholder="体重(kg)" />
-        <input v-model.number="currentProfile.height" class="modal-input" type="number" placeholder="身高(cm)" />
+        <!-- 限制体重输入在0到300kg之间 -->
+        <input
+          v-model.number="currentProfile.weight"
+          class="modal-input"
+          type="number"
+          placeholder="体重(kg)"
+          min="0"
+          max="300"
+          step="0.1"
+        />
+
+        <!-- 限制身高输入在0到300cm之间 -->
+        <input
+          v-model.number="currentProfile.height"
+          class="modal-input"
+          type="number"
+          placeholder="身高(cm)"
+          min="0"
+          max="300"
+          step="0.1"
+        />
 
         <view class="modal-buttons">
           <button class="modal-button cancel" @tap="hideModal">取消</button>
@@ -61,7 +83,7 @@
       </view>
     </view>
 
-    <!-- 删除确认模态框 -->
+    <!-- 删除确认模态框保持不变 -->
     <view class="modal" v-if="showDeleteModal">
       <view class="modal-content">
         <text class="modal-title">确认删除</text>
@@ -161,7 +183,7 @@ export default {
     },
     validateProfile() {
       const { name, gender, birthdate, weight, height } = this.currentProfile;
-      if (!name || !gender || !birthdate || !weight || !height) {
+      if (!name || !gender || !birthdate || weight === '' || height === '') {
         uni.showToast({
           title: '请填写完整信息',
           icon: 'none'
@@ -180,17 +202,25 @@ export default {
       }
 
       const age = this.calculateAge(birthdate);
-      if (age < 0 || age > 18) {
+      if (age < 0 || age > 150) {
         uni.showToast({
-          title: '孩子年龄必须在0到18岁之间',
+          title: '孩子这年龄正常吗',
           icon: 'none'
         });
         return false;
       }
 
-      if (weight <= 0 || height <= 0) {
+      if (weight <= 0 || weight > 300) {
         uni.showToast({
-          title: '体重和身高必须为正数',
+          title: '孩子这体重正常吗（0-300kg之间）',
+          icon: 'none'
+        });
+        return false;
+      }
+
+      if (height <= 0 || height > 300) {
+        uni.showToast({
+          title: '孩子这身高正常吗（身高必须在0到300cm之间）',
           icon: 'none'
         });
         return false;

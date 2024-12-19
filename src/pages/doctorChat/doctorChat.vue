@@ -501,11 +501,10 @@ export default {
   overflow-y: auto;
 }
 
-/* 单条消息包装器 */
+/* 单条消息外层包装，用于时间和消息行垂直排列 */
 .message-wrapper {
   display: flex;
   flex-direction: column;
-  /* 使时间和消息内容垂直排列 */
   margin-bottom: 15px;
 }
 
@@ -517,18 +516,19 @@ export default {
   margin-bottom: 8px;
 }
 
-/* 消息行样式 */
+/* 消息行样式：使用 flex 布局进行左右对齐与垂直居中 */
 .message-row {
   display: flex;
-  align-items: flex-end;
+  align-items: center; /* 垂直居中对齐，让头像与气泡基线一致 */
+  max-width: 100%;
 }
 
-/* 用户发送的消息行样式 */
+/* 用户发送的消息行样式：右对齐 */
 .user-row {
   justify-content: flex-end;
 }
 
-/* 医生发送的消息行样式 */
+/* 医生发送的消息行样式：左对齐 */
 .doctor-row {
   justify-content: flex-start;
 }
@@ -538,6 +538,8 @@ export default {
   width: 30px;
   height: 30px;
   border-radius: 50%;
+  display: block;
+  /* 确保头像在垂直方向与气泡对齐 */
 }
 
 /* 消息内容气泡样式 */
@@ -546,36 +548,36 @@ export default {
   padding: 10px;
   border-radius: 8px;
   word-wrap: break-word;
-  position: relative;
-  background-color: #fff;
-  /* 默认背景色 */
+  background-color: #fff; /* 默认医生消息背景为白色 */
+  line-height: 1.4;
+  display: inline-block;
+  /* 消息文本与图片都在同一基线，更易对齐 */
 }
 
-/* 用户发送的气泡颜色 */
+/* 用户发送的气泡颜色与间距
+   用户气泡在头像左侧，因此气泡与头像之间使用 margin-right */
 .user-content {
-  background-color: #dcf8c6;
-  /* 微信发送消息的绿色 */
-  margin-left: 8px;
-  /* 与头像分隔 */
+  background-color: #dcf8c6; /* 类似微信的浅绿色 */
+  margin-right: 8px;
 }
 
-/* 医生发送的气泡颜色 */
+/* 医生发送的气泡颜色与间距
+   医生头像在左侧，因此气泡与头像之间使用 margin-left */
 .doctor-content {
   background-color: #fff;
-  margin-right: 8px;
-  /* 与头像分隔 */
+  margin-left: 8px;
 }
 
 /* 消息文本样式 */
 .message-text {
   font-size: 16px;
-  line-height: 1.4;
 }
 
 /* 消息图片样式 */
 .message-image {
   max-width: 100%;
   border-radius: 5px;
+  display: block;
 }
 
 /* 聊天输入区域样式 */
