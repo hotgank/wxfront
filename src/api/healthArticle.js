@@ -27,7 +27,7 @@ export const getAllHealthArticles = async () => {
   try {
     const response = await request({
       url: '/api/healthArticle/getAll',
-      method: 'POST',
+      method: 'GET',
     });
 
     // 校验返回的数据是否有效

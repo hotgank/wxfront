@@ -55,8 +55,8 @@ export default {
   data() {
     return {
       userInfo: {
-        avatarUrl: "/static/my/default-avatar.jpg", // 默认头像
-        username: "微信用户", // 默认昵称
+        avatarUrl: "", // 默认头像
+        username: "", // 默认昵称
       },
     };
   },
