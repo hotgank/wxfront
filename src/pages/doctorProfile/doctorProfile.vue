@@ -4,7 +4,7 @@
       <image :src="doctor.avatarUrl || '/static/doctor-avatars/default.jpg'" mode="aspectFill" class="doctor-avatar"></image>
       <view class="doctor-basic-info">
         <text class="doctor-name">{{ doctor.name }}</text>
-        <text class="doctor-position">{{ doctor.position||'主治医师' }}</text>
+        <text class="doctor-position">{{ doctor.position || '主治医师' }}</text>
         <text class="doctor-workplace">{{ doctor.workplace }}</text>
       </view>
     </view>
@@ -12,19 +12,29 @@
       <view class="info-section">
         <text class="section-position">评分</text>
         <view class="rating">
-          <text class="rating-score">{{ doctor.rating }}</text>
-          <view class="rating-stars">
-            <text v-for="i in 5" :key="i" class="star" :class="{ 'filled': i < Math.floor(doctor.rating) }">★</text>
+          <text v-if="doctor.rating === -1" class="rating-score">暂无评分</text>
+          <view v-else>
+            <text class="rating-score">{{ doctor.rating.toFixed(1) }}</text>
+            <view class="rating-stars">
+              <text 
+                v-for="(type, index) in starTypes" 
+                :key="index" 
+                class="star" 
+                :class="type"
+              >
+                ★
+              </text>
+            </view>
           </view>
         </view>
       </view>
       <view class="info-section">
         <text class="section-position">职位</text>
-        <text class="section-content">{{ doctor.position||'医生' }}</text>
+        <text class="section-content">{{ doctor.position || '医生' }}</text>
       </view>
       <view class="info-section">
         <text class="section-position">工作经历</text>
-        <text class="section-content">{{ doctor.experience||'是一位经验丰富的小白' }}</text>
+        <text class="section-content">{{ doctor.experience || '是一位经验丰富的小白' }}</text>
       </view>
     </view>
   </view>
@@ -45,18 +55,43 @@ export default {
       }
     }
   },
+  computed: {
+    starTypes() {
+      const types = [];
+      if (this.doctor.rating === -1) {
+        return types;
+      }
+      const fullStars = Math.floor(this.doctor.rating);
+      const decimal = this.doctor.rating % 1;
+      const hasHalfStar = decimal >= 0.25 && decimal < 0.75;
+      const additionalFullStar = decimal >= 0.75 ? 1 : 0;
+
+      for (let i = 1; i <= 5; i++) {
+        if (i <= fullStars) {
+          types.push('filled');
+        } else if (i === fullStars + 1 && hasHalfStar) {
+          types.push('half-filled');
+        } else if (i === fullStars + 1 && additionalFullStar) {
+          types.push('filled');
+        } else {
+          types.push('empty');
+        }
+      }
+      return types;
+    }
+  },
   onLoad(option) {
     if (option.doctor) {
-    try {
-      this.doctor = JSON.parse(decodeURIComponent(option.doctor));
-    } catch (error) {
-      console.error('医生数据解析失败:', error);
-      uni.showToast({
-        title: '加载医生数据失败',
-        icon: 'none',
-      });
+      try {
+        this.doctor = JSON.parse(decodeURIComponent(option.doctor));
+      } catch (error) {
+        console.error('医生数据解析失败:', error);
+        uni.showToast({
+          title: '加载医生数据失败',
+          icon: 'none',
+        });
+      }
     }
-  }
   }
 }
 </script>
@@ -147,14 +182,29 @@ export default {
 
 .rating-stars {
   display: flex;
+  position: relative;
 }
 
 .star {
   font-size: 20px;
   color: #d1d1d1;
+  position: relative;
 }
 
 .star.filled {
   color: #ff9500;
+}
+
+.star.half-filled {
+  color: #d1d1d1;
+}
+
+.star.half-filled::before {
+  content: '★';
+  color: #ff9500;
+  position: absolute;
+  left: 0;
+  width: 50%;
+  overflow: hidden;
 }
 </style>
