@@ -44,7 +44,7 @@ export default {
         });
       } catch (error) {
         uni.showToast({
-          title: error.message || '登录失败，请重试',
+          title: error.message || '登录失败，账户已被封禁,或服务器出现问题',
           icon: 'none'
         });
       }

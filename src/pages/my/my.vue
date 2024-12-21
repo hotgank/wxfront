@@ -10,8 +10,10 @@
         <view>
           <input
             class="nickname-input"
+            :class="{ 'nickname-focused': isNicknameFocused }"
             v-model="userInfo.username"
-            @blur="saveNickname"
+            @focus="onNicknameFocus"
+            @blur="onNicknameBlur"
             placeholder="请输入新的昵称"
           />
         </view>
@@ -49,7 +51,7 @@
 
 <script>
 import { getUserInfo, uploadUsername } from "@/api/user"; // 引用封装的请求方法
-import { uploadUserAvatar,  } from "@/api/image"; // 引用封装的图片方法
+import { uploadUserAvatar } from "@/api/image"; // 引用封装的图片方法
 
 export default {
   data() {
@@ -58,6 +60,7 @@ export default {
         avatarUrl: "", // 默认头像
         username: "", // 默认昵称
       },
+      isNicknameFocused: false, // 新增状态变量
     };
   },
   async onLoad() {
@@ -66,7 +69,7 @@ export default {
       const userInfo = await getUserInfo();
       if (userInfo.avatarUrl) {
         try {
-          this.userInfo.avatarUrl = userInfo.avatarUrl
+          this.userInfo.avatarUrl = userInfo.avatarUrl;
         } catch (error) {
           console.error("获取头像失败:", error);
         }
@@ -93,7 +96,7 @@ export default {
           const avatarPath = chooseImageResult.tempFilePaths[0];
 
           // 上传头像并获取成功提示
-          const successMessage = await uploadUserAvatar(avatarPath);
+          await uploadUserAvatar(avatarPath);
           uni.showToast({
             title: "成功上传头像",
             icon: "success",
@@ -122,9 +125,7 @@ export default {
 
       try {
         // 调用封装的接口，传入 JSON 数据
-        const response = await uploadUsername(
-           this.userInfo.username.trim(),
-        );
+        await uploadUsername(this.userInfo.username.trim());
 
         uni.showToast({
           title: "成功更新昵称",
@@ -143,6 +144,16 @@ export default {
       uni.navigateTo({
         url: `/pages/my/${page}/${page}`,
       });
+    },
+
+    // 新增方法
+    onNicknameFocus() {
+      this.isNicknameFocused = true;
+    },
+
+    onNicknameBlur() {
+      this.isNicknameFocused = false;
+      this.saveNickname(); // 保持原有功能
     },
   },
 };
@@ -182,20 +193,18 @@ export default {
 }
 
 .avatar-button {
-  /* 使用 <view> 代替 <button>，移除所有边框和背景 */
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  overflow: hidden; /* 确保图片圆形 */
-  cursor: pointer;  /* 鼠标悬停时显示为指针 */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* 可选：保留阴影 */
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .avatar {
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  /* 如果需要透明边框，可以在这里添加 */
 }
 
 .nickname-input {
@@ -204,11 +213,16 @@ export default {
   font-weight: bold;
   color: #333;
   text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
-  border: none;
+  border: none; /* 移除所有边框 */
   background: transparent;
-  border-bottom: 1px solid #ccc;
   text-align: center;
   outline: none;
+  transition: border-bottom 0.3s ease; /* 添加过渡效果 */
+}
+
+/* 动态类 - 聚焦时添加下划线 */
+.nickname-focused {
+  border-bottom: 1px solid #ccc;
 }
 
 .function-blocks {

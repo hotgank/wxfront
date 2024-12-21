@@ -14,7 +14,7 @@ const request = (options) => {
       .join('&');
     requestUrl += `?${queryString}`;
   }
-
+  
   return new Promise((resolve, reject) => {
     uni.request({
       url: requestUrl,
