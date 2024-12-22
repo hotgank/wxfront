@@ -48,19 +48,5 @@ export const uploadUsername = async (username) => {
       throw error; // 抛出错误，方便调用方处理
     }
   };
-
-
-// 获取用户状态，直接返回 status 值
-export const getUserStatus = () => {
-  return request({
-    url: '/api/user/selectUserStatus',
-    method: 'GET',
-  }).then(([error, res]) => {
-    if (error) {
-      return Promise.reject(error);
-    }
-    // 假设后端返回 { "status": "active" } 或 { "status": "disabled" }
-    return res.status;
-  });
-};
+  
 

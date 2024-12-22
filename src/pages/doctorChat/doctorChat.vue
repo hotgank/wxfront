@@ -104,17 +104,11 @@ export default {
       // 获取用户信息并设置用户头像
       const userInfo = await getUserInfo();
       if (userInfo && userInfo.avatarUrl) {
-        try {
-          // 如果需要处理头像 URL（例如转换为 Base64），可以调用相应的方法
-          this.userAvatar = await getDoctorAvatar(userInfo.avatarUrl) || userInfo.avatarUrl;
-        } catch (error) {
-          console.error("获取用户头像失败:", error);
-          this.userAvatar = userInfo.avatarUrl; // 保持原始 URL
-        }
+        this.userAvatar = userInfo.avatarUrl;
       }
 
       await this.fetchMessages();
-      
+
     } catch (error) {
       console.error('页面初始化失败:', error);
       uni.showToast({
@@ -172,7 +166,7 @@ export default {
             console.error('更新已读消息序列号失败:', error);
           }
         }
-        
+
       } catch (error) {
         console.error('加载消息失败:', error);
         uni.showToast({
@@ -207,8 +201,11 @@ export default {
           this.messages.push(newImageMessage);
           this.messageSeqAfter = newMessageSeq; // 更新最新的 messageSeqAfter
           this.$nextTick(() => {
-            this.scrollToBottom();
+
+            this.scrollIntoView = 'bottom-' + this.bottomId; // 设置新的 scrollIntoView
+            this.bottomId += 1; // 递增计数器
           });
+
 
           try {
             // 上传图片到服务器
@@ -404,10 +401,10 @@ export default {
           console.log('没有新消息');
           return;
         }
-        
+
         // 处理消息数据
         const processedMessages = await this.processMessages(latestMessages[1]);
-        
+
         const newMessages = processedMessages.filter(
           (msg) => msg.messageSeq > this.messageSeqAfter
         );
@@ -519,7 +516,8 @@ export default {
 /* 消息行样式：使用 flex 布局进行左右对齐与垂直居中 */
 .message-row {
   display: flex;
-  align-items: center; /* 垂直居中对齐，让头像与气泡基线一致 */
+  align-items: center;
+  /* 垂直居中对齐，让头像与气泡基线一致 */
   max-width: 100%;
 }
 
@@ -548,7 +546,8 @@ export default {
   padding: 10px;
   border-radius: 8px;
   word-wrap: break-word;
-  background-color: #fff; /* 默认医生消息背景为白色 */
+  background-color: #fff;
+  /* 默认医生消息背景为白色 */
   line-height: 1.4;
   display: inline-block;
   /* 消息文本与图片都在同一基线，更易对齐 */
@@ -557,7 +556,8 @@ export default {
 /* 用户发送的气泡颜色与间距
    用户气泡在头像左侧，因此气泡与头像之间使用 margin-right */
 .user-content {
-  background-color: #dcf8c6; /* 类似微信的浅绿色 */
+  background-color: #dcf8c6;
+  /* 类似微信的浅绿色 */
   margin-right: 8px;
 }
 
