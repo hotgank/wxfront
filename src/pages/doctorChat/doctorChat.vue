@@ -545,7 +545,7 @@ export default {
   height: 30px;
   border-radius: 50%;
   display: block;
-  margin-right: 10px;
+  margin-right: 13px;
   /* 确保头像在垂直方向与气泡对齐 */
 }
 /* 消息内容气泡样式 */
