@@ -33,7 +33,7 @@
                 class="message-image" alt="Message image" @tap="previewImage(message.localUrl || message.url)"></image>
               <text v-else class="message-text">{{ message.content }}</text>
             </view>
-            <image :src="userAvatar" class="avatar"></image>
+            <image :src="userAvatar" class="useravatar"></image>
           </template>
         </view>
       </view>
@@ -540,6 +540,14 @@ export default {
   /* 确保头像在垂直方向与气泡对齐 */
 }
 
+.useravatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: block;
+  margin-right: 10px;
+  /* 确保头像在垂直方向与气泡对齐 */
+}
 /* 消息内容气泡样式 */
 .message-content {
   max-width: 70%;
