@@ -1,29 +1,44 @@
 <template>
   <div class="container">
     <h1 class="page-title">科普文章</h1>
-    <!-- 添加搜索框 -->
-    <div class="search-container">
-    <div class="search-box">
-      <!-- 修改搜索图标 SVG -->
-      <image src="/static/icons/search.png" class="search-icon" />
-      <input 
-        type="text" 
-        v-model="searchQuery" 
-        placeholder="搜索文章标题..." 
-        class="search-input"
-      >
-      <div 
-        v-if="searchQuery" 
-        class="clear-button"
-        @click="clearSearch"
-      >
-        ✕
+    <!-- 添加搜索框和筛选下拉框 -->
+    <div class="search-filter-container">
+      <div class="filter-box">
+        <picker 
+          mode="selector" 
+          :range="articleTypes" 
+          @change="onTypeChange" 
+          class="type-picker"
+        >
+          <view class="picker-wrapper">
+            <text class="picker-text">{{ selectedType || '选择类型' }}</text>
+            <text class="picker-icon">▼</text>
+          </view>
+        </picker>
+        <button v-if="selectedType" @click="clearType" class="clear-filter-button">清除</button>
+      </div>
+      <div class="search-container">
+        <div class="search-box">
+          <img src="/static/icons/search.png" class="search-icon" alt="搜索图标" />
+          <input 
+            type="text" 
+            v-model="searchQuery" 
+            placeholder="搜索文章标题..." 
+            class="search-input"
+          >
+          <div 
+            v-if="searchQuery" 
+            class="clear-button"
+            @click="clearSearch"
+          >
+            ✕
+          </div>
+        </div>
       </div>
     </div>
-  </div>
     <div class="article-grid">
       <div v-for="article in filteredArticles" :key="article.articleId" class="article-card"
-        @tap="goToArticleDetail(article.articleId)">
+        @click="goToArticleDetail(article.articleId)">
         <div class="article-header">
           <img
             :src="articleDoctors[article.articleId] && articleDoctors[article.articleId].avatar || '/static/doctor-avatars/default.jpg'"
@@ -63,8 +78,6 @@
   </div>
 </template>
 
-
-
 <script>
 import { mapState, mapActions } from 'vuex';
 
@@ -72,18 +85,38 @@ export default {
   data() {
     return {
       searchQuery: '',
+      selectedType: '', // 用于存储选中的文章类型
+      articleTypes: [
+        '全部类型',
+        '脊柱侧弯',
+        '高低肩',
+        '骨盆侧倾',
+        '足部健康与矫正',
+        '姿势矫正',
+        '运动与康复',
+        '青少年骨骼发育',
+        '其他'
+      ], // 静态定义的文章类型
     }
   },
   computed: {
     ...mapState(['healthArticles', 'articleDoctors']),
+    // 根据搜索查询和选中的类型过滤文章
     filteredArticles() {
-      if (!this.searchQuery) {
-        return this.healthArticles;
+      let articles = this.healthArticles;
+
+      if (this.searchQuery) {
+        const query = this.searchQuery.toLowerCase().trim();
+        articles = articles.filter(article => 
+          article.title.toLowerCase().includes(query)
+        );
       }
-      const query = this.searchQuery.toLowerCase().trim();
-      return this.healthArticles.filter(article => 
-        article.title.toLowerCase().includes(query)
-      );
+
+      if (this.selectedType && this.selectedType !== '全部类型') {
+        articles = articles.filter(article => article.type === this.selectedType);
+      }
+
+      return articles;
     }
   },
   methods: {
@@ -95,6 +128,13 @@ export default {
     },
     clearSearch() {
       this.searchQuery = '';
+    },
+    onTypeChange(e) {
+      const index = e.detail.value;
+      this.selectedType = this.articleTypes[index];
+    },
+    clearType() {
+      this.selectedType = '';
     }
   },
   async onLoad() {
@@ -120,115 +160,85 @@ export default {
 }
 
 .page-title {
-  font-size: 28px;
+  font-size: 32px;
   font-weight: bold;
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 40px;
   color: #333;
-}
-
-.article-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
-}
-
-
-.article-card {
-background-color:#ffffff;
-border-radius: 12px;
-box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-padding: 20px;
-transition: all 0.3s ease;
-display: flex;
-flex-direction: column;
-}
-
-
-.article-card:hover {
-transform: translateY(-5px);
-box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-}
-
-.article-header {
-display: flex;
-align-items: center;
-margin-bottom: 15px;
-}
-
-.doctor-avatar {
-width: 60px;
-height: 60px;
-border-radius: 50%;
-object-fit: cover;
-margin-right: 15px;
-border: 2px solid #e6f3ff;
-}
-
-.article-title-type {
-flex: 1;
-}
-
-.article-title {
-font-size: 18px;
-font-weight: bold;
-color: #333;
-margin-bottom: 5px;
-}
-
-.article-type {
-display: inline-block;
-background-color: #e6f3ff;
-color: #0066cc;
-font-size: 12px;
-padding: 4px 8px;
-border-radius: 20px;
-}
-
-.article-info {
-margin-top: 15px;
-padding-top: 15px;
-border-top: 1px solid #e6e6e6;
-}
-
-.info-item {
-display: flex;
-align-items: center;
-margin-bottom: 8px;
-color: #666;
-font-size: 14px;
-}
-
-.icon {
-width: 16px;
-height: 16px;
-margin-right: 8px;
-fill: none;
-stroke: currentColor;
-stroke-width: 2;
-}
-
-.page-title {
-font-size: 32px;
-font-weight: bold;
-text-align: center;
-margin-bottom: 40px;
-color: #333;
-position: relative;
+  position: relative;
 }
 
 .page-title::after {
-content: '';
-display: block;
-width: 50px;
-height: 3px;
-background-color: #0066cc;
-margin: 10px auto 0;
+  content: '';
+  display: block;
+  width: 50px;
+  height: 3px;
+  background-color: #0066cc;
+  margin: 10px auto 0;
 }
-.search-container {
+
+.search-filter-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+.filter-box {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.filter-box .picker-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 8px 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.filter-box .picker-wrapper:active {
+  background-color: #f8f8f8;
+  transform: translateY(1px);
+}
+
+.filter-box .picker-text {
+  font-size: 14px;
+  color: #333;
+}
+
+.filter-box .picker-icon {
+  font-size: 12px;
+  color: #666;
+  transition: transform 0.3s ease;
+}
+
+.clear-filter-button {
+  margin-left: 10px;
+  padding: 6px 12px;
+  background-color: #f0f0f0;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.clear-filter-button:hover {
+  background-color: #d9d9d9;
+}
+
+.search-container {
+  flex: 1;
   display: flex;
   justify-content: center;
+  margin-left: 20px;
 }
 
 .search-box {
@@ -281,7 +291,85 @@ margin: 10px auto 0;
   color: #666;
 }
 
-/* 无搜索结果样式 */
+.article-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.article-card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.article-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.article-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.doctor-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 15px;
+  border: 2px solid #e6f3ff;
+}
+
+.article-title-type {
+  flex: 1;
+}
+
+.article-title {
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.article-type {
+  display: inline-block;
+  background-color: #e6f3ff;
+  color: #0066cc;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 20px;
+}
+
+.article-info {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #e6e6e6;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  color: #666;
+  font-size: 14px;
+}
+
+.icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+
 .no-results {
   text-align: center;
   padding: 40px 0;
@@ -300,23 +388,35 @@ margin: 10px auto 0;
   color: #666;
 }
 
-
 @media (max-width: 768px) {
-.article-grid {
-grid-template-columns: 1fr;
-}
+  .search-filter-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
 
-.article-card {
-padding: 15px;
-}
+  .filter-box {
+    margin-bottom: 20px;
+  }
 
-.doctor-avatar {
-width: 50px;
-height: 50px;
-}
+  .search-container {
+    margin-left: 0;
+  }
 
-.article-title {
-font-size: 16px;
-}
+  .article-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .article-card {
+    padding: 15px;
+  }
+
+  .doctor-avatar {
+    width: 50px;
+    height: 50px;
+  }
+
+  .article-title {
+    font-size: 16px;
+  }
 }
 </style>
