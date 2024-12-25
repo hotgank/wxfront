@@ -33,7 +33,7 @@ const request = (options) => {
 
         if (statusCode === 200) {
           resolve([null, resData]);
-        } else if (statusCode !== 200) {
+        } else if (statusCode === 401) {
           // 认证失败，跳转到登录页面
           handleAuthError();
           reject([resData, null]);

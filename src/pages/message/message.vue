@@ -46,61 +46,60 @@ export default {
   },
   methods: {
     async fetchMessages() {
-      try {
-        console.log("获取消息列表");
-        const data = await getLastMessage();
+  try {
+    console.log("获取消息列表");
+    const data = await getLastMessage();
 
-        const formattedChats = await Promise.all(
-            data.map(async (item) => {
-              let avatarUrl = item.doctor.avatarUrl;
-              if (!avatarUrl) {
-                avatarUrl = '/static/doctor-avatars/default.jpg';
-              } else {
-                
-              }
-
-              // 获取未读消息数量
-              const unreadInfo = await this.getUnreadCount(item.message.relationId);
-
-              return {
-                doctor: { ...item.doctor, avatarUrl },
-                lastMessage: item.message.messageText,
-                lastMessageTime: dayjs(item.message.timestamp),
-                unread: unreadInfo.UserUnread > 0, // 根据未读消息数量设置 unread 状态
-                unreadCount: unreadInfo.UserUnread, // 存储未读消息数量
-                senderType: item.message.senderType
-              };
-            })
-        );
-
-        console.log("格式化后的聊天列表:", formattedChats);
-
-        // 更新 MyLatestMessageTime 逻辑保持不变
-
-        this.chats = formattedChats.map(chat => ({
-          ...chat,
-          lastMessageTime: chat.lastMessageTime.format('YYYY-MM-DD HH:mm'),
-        }));
-
-        console.log("更新后的聊天列表:", this.chats);
-
-        // 检查是否有新的未读消息
-        const totalUnread = this.chats.reduce((sum, chat) => sum + chat.unreadCount, 0);
-        if (totalUnread > 0) {
-          //this.showNewMessageNotification(totalUnread);
+    const formattedChats = await Promise.all(
+      data.map(async (item) => {
+        let avatarUrl = item.doctor.avatarUrl;
+        if (!avatarUrl) {
+          avatarUrl = '/static/doctor-avatars/default.jpg';
         }
 
-      } catch (error) {
-        console.error('获取消息失败:', error);
-      }
-    },
+        // 获取未读消息数量
+        const unreadInfo = await this.getUnreadCount(item.message.relationId);
+
+        return {
+          doctor: { ...item.doctor, avatarUrl },
+          lastMessage: item.message.messageText,
+          lastMessageTime: dayjs(item.message.timestamp),
+          unread: unreadInfo.UserUnread > 0, // 根据未读消息数量设置 unread 状态
+          unreadCount: unreadInfo.UserUnread, // 存储未读消息数量
+          senderType: item.message.senderType
+        };
+      })
+    );
+
+    console.log("格式化后的聊天列表:", formattedChats);
+
+    // 更新 MyLatestMessageTime 逻辑保持不变
+
+    this.chats = formattedChats.map(chat => ({
+      ...chat,
+      lastMessageTime: chat.lastMessageTime.format('YYYY-MM-DD HH:mm'),
+    }));
+
+    console.log("更新后的聊天列表:", this.chats);
+
+    // 检查是否有新的未读消息
+    const totalUnread = this.chats.reduce((sum, chat) => sum + chat.unreadCount, 0);
+    if (totalUnread > 0) {
+      //this.showNewMessageNotification(totalUnread);
+    }
+
+  } catch (error) {
+    console.log('获取消息失败:', error);
+    this.chats = []; // 设置为空数组以避免页面报错
+  }
+},
 
     async getUnreadCount(relationId) {
       try {
         const unreadInfo = await getUnreadInfo(relationId);
         return unreadInfo;
       } catch (error) {
-        console.error('获取未读消息数量失败:', error);
+        console.log('获取未读消息数量失败:', error);
         return { UserUnread: 0, DoctorUnread: 0 };
       }
     },
