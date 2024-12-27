@@ -34,7 +34,15 @@
           </view>
         </view>
       </view>
-      <button class="submit-button" @tap="submitPhotos" :disabled="!allPhotosUploaded">提交检测</button>
+      <button class="submit-button" @tap="submitPhotos" :disabled="!allPhotosUploaded || isUploading">提交检测</button>
+    </view>
+
+    <!-- 上传中覆盖层 -->
+    <view v-if="isUploading" class="uploading-overlay">
+      <view class="uploading-content">
+        <text class="uploading-text">正在上传...</text>
+        <image src="/static/loading.gif" class="loading-spinner"></image>
+      </view>
     </view>
   </view>
 </template>
@@ -54,7 +62,8 @@ export default {
         // 可以根据需求添加更多要求
       ],
       uploadedPhotos: [],
-      fileSizeLimit: 1.5 * 1024 * 1024 // 1.5 MB in bytes
+      fileSizeLimit: 1.5 * 1024 * 1024, // 1.5 MB in bytes
+      isUploading: false // 上传状态
     };
   },
   computed: {
@@ -111,6 +120,7 @@ export default {
     },
     async submitPhotos() {
       if (this.allPhotosUploaded) {
+        this.isUploading = true; // 开始上传
         uni.showLoading({
           title: '正在上传...'
         });
@@ -143,12 +153,14 @@ export default {
           }, 2000);
 
         } catch (error) {
-          uni.hideLoading();
           console.error('上传或AI检测失败:', error.message);
           uni.showToast({
             title: '上传或AI检测失败',
             icon: 'none'
           });
+        } finally {
+          this.isUploading = false; // 上传完成
+          uni.hideLoading();
         }
       }
     }
@@ -277,5 +289,39 @@ export default {
   font-size: 14px;
   color: #666;
   margin-top: 10px;
+}
+
+/* 上传中覆盖层样式 */
+.uploading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* 半透明背景 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.uploading-content {
+  background-color: #ffffff;
+  padding: 20px 40px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.uploading-text {
+  font-size: 18px;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
 }
 </style>
