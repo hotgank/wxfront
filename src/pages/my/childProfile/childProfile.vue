@@ -210,7 +210,7 @@ export default {
         return false;
       }
 
-      if (weight <= 0 || weight > 300) {
+      if (weight <= 0 || weight > 300 || isNaN(weight)) {
         uni.showToast({
           title: '孩子这体重正常吗（0-300kg之间）',
           icon: 'none'
@@ -218,7 +218,7 @@ export default {
         return false;
       }
 
-      if (height <= 0 || height > 300) {
+      if (height <= 0 || height > 300 || isNaN(height)) {
         uni.showToast({
           title: '孩子这身高正常吗（身高必须在0到300cm之间）',
           icon: 'none'
@@ -296,8 +296,9 @@ export default {
 
 .profile-list {
   flex: 1;
-  padding: 12px 16px;
+  padding: 12px 6px;
   overflow-y: auto;
+  
 }
 
 .profile-card {
@@ -494,9 +495,6 @@ export default {
     font-size: 13px;
   }
 
-  .profile-card {
-    padding: 12px 14px;
-  }
 
   .profile-name {
     font-size: 16px;

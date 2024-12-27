@@ -44,8 +44,8 @@
             v-for="star in 5"
             :key="star"
             class="star"
-            :class="{ filled: star <= selectedRating }"
-            @tap="setRating(star)"
+            :class="{ filled: star < selectedRating }"
+            @tap="setRating(star+1)"
           >
             &#9733;
           </text>
@@ -70,7 +70,7 @@ export default {
       doctors: [],
       showRatingModal: false,       // 控制评分模态框的显示
       selectedDoctor: null,         // 存储选定的医生
-      selectedRating: 0,            // 存储选定的评分
+      selectedRating: -1,            // 存储选定的评分
     }
   },
   mounted() {
@@ -122,7 +122,7 @@ export default {
     },
     // 提交评分
     async submitRating() {
-      if (this.selectedRating < 1 || this.selectedRating > 5) {
+      if (this.selectedRating <=0 || this.selectedRating > 5) {
         uni.showToast({
           title: '请选择一个评分',
           icon: 'none',
@@ -144,6 +144,7 @@ export default {
         this.doctors = this.doctors.filter((d) => d.doctorId !== doctor.doctorId);
 
         // 提交评分
+        console.log(this.selectedRating);
         await marking(doctor.doctorId, this.selectedRating);
         uni.showToast({
           title: '感谢您的评分',
@@ -251,6 +252,7 @@ export default {
   font-size: 14px;
   font-weight: bold;
   cursor: pointer;
+  margin-right: 10px;
 }
 
 .end-binding-button:active {

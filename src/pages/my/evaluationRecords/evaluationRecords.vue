@@ -144,7 +144,7 @@ export default {
       } catch (error) {
         console.error('加载记录失败:', error);
         uni.showToast({
-          title: '账户已被封禁',
+          title: '获取记录失败',
           icon: 'none',
         });
         this.records = []; // 异常情况下重置数据
